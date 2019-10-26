@@ -61,6 +61,16 @@
            "[1 2 3 4]"
            "[1 2 3 4 5 6 7]"))))
 
+(deftest match-test
+  (testing "equal to self"
+    (are [x] (#'g/match? x x)
+         [:whitespace " "]
+         [:symbol "foo"]
+         [:simple-keyword "foo"]
+         [:list [:symbol "a"] [:symbol "b"] [:number "42"]]
+       ))
+  )
+
 ;; -------------------
 ;; Code matching
 ;; -------------------
@@ -72,3 +82,13 @@
                     :start-line 1, :end-line 1
                     :start-index 0, :end-index 9}}]
            (g/find-codes code code)))))
+
+(deftest find-code-ignoring-whitespace
+  (let [pattern "(def f [x y] 42)"]
+    (are [code] (= {:match code}
+                   (dissoc (g/find-code code pattern) :meta))
+
+         "( \t\t  def\n \t  f   [  x \n\n y  ] 42   )"
+         "(def f [x y] 42\n   )"
+         "(def f\n  [x y]\n  42)"
+         )))

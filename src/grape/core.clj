@@ -1,5 +1,6 @@
 (ns grape.core
-  (:require [instaparse.core :as insta]
+  (:require [clojure.string :as str]
+            [instaparse.core :as insta]
             [parcera.core :as parcera]))
 
 (def ^:private tree-node? vector?)
@@ -22,16 +23,45 @@
     (parse-string code)))
 
 (defn parse-pattern
-  "Parse a code pattern to be matched against parsed code."
+  "Parse a code pattern to be matched against parsed code. Any expression
+   after the first one is discared."
   [code]
   (-> code
+      str/trim
       parse-string
       node-children
       first))
 
+(defn- drop-whitespace
+  [xs]
+  (remove #(= :whitespace (node-type %)) xs))
+
 (defn- match?
+  "Test if a subtree matches a pattern. Always return false on the root tree."
   [tree pattern]
-  (= tree pattern))
+  (cond
+    (= :code (node-type tree))
+    false
+
+    ;; one of them is a leave:
+    ;; - if both are leaves and equal, return true
+    ;; - otherwise false (a leave and a non-leave are never equal)
+    (or (tree-leave? tree) (tree-leave? pattern))
+    (= tree pattern)
+
+    ;; [:symbol "foo"] ≠ [:simple-keyword "foo"]
+    (not= (node-type tree) (node-type pattern))
+    false
+
+    :else
+    (let [tree-children    (drop-whitespace (node-children tree))
+          pattern-children (drop-whitespace (node-children pattern))]
+      (if (not= (count tree-children) (count pattern-children))
+        false
+        (every? true?
+                (map match?
+                     tree-children
+                     pattern-children))))))
 
 (defn- ->code
   "Wrap a tree in a :code parent with the same metadata."
