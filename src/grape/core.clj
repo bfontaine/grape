@@ -36,32 +36,43 @@
   [xs]
   (remove #(= :whitespace (node-type %)) xs))
 
+(def ^{:dynamic true
+       :doc "Symbol used to represent a wildcard expression in a pattern.
+This must be a valid Clojure symbol."}
+  *wildcard-expression*
+  "$")
+
 (defn- match?
   "Test if a subtree matches a pattern. Always return false on the root tree."
   [tree pattern]
-  (cond
-    (= :code (node-type tree))
-    false
+  (let [wildcard? (= [:symbol *wildcard-expression*]
+                     pattern)]
+    (cond
+      (= :code (node-type tree))
+      false
 
-    ;; one of them is a leave:
-    ;; - if both are leaves and equal, return true
-    ;; - otherwise false (a leave and a non-leave are never equal)
-    (or (tree-leave? tree) (tree-leave? pattern))
-    (= tree pattern)
+      ;; one of them is a leave:
+      ;; - if both are leaves and equal, return true
+      ;; - otherwise false (a leave and a non-leave are never equal)
+      (or (tree-leave? tree) (tree-leave? pattern))
+      (= tree pattern)
 
-    ;; [:symbol "foo"] ≠ [:simple-keyword "foo"]
-    (not= (node-type tree) (node-type pattern))
-    false
+      wildcard?
+      true
 
-    :else
-    (let [tree-children    (drop-whitespace (node-children tree))
-          pattern-children (drop-whitespace (node-children pattern))]
-      (if (not= (count tree-children) (count pattern-children))
-        false
-        (every? true?
-                (map match?
-                     tree-children
-                     pattern-children))))))
+      ;; [:symbol "foo"] ≠ [:simple-keyword "foo"]
+      (not= (node-type tree) (node-type pattern))
+      false
+
+      :else
+      (let [tree-children    (drop-whitespace (node-children tree))
+            pattern-children (drop-whitespace (node-children pattern))]
+        (if (not= (count tree-children) (count pattern-children))
+          false
+          (every? true?
+                  (map match?
+                       tree-children
+                       pattern-children)))))))
 
 (defn- ->code
   "Wrap a tree in a :code parent with the same metadata."
@@ -99,6 +110,19 @@
             {}
             meta-keys)))
 
+;; NOTE we lose leading whitespace, e.g.:
+;; Code:
+;;   "(let [a 42]
+;;   |  (+ a
+;;   |     a))"
+;; Pattern: "(+ $ $)"
+;; Result:
+;;   "(+ a
+;;   |     a)"
+;; Instead of:
+;;   "  (+ a
+;;   |     a)"
+;;
 (defn find-codes
   "Find pieces of `code` based on `pattern`. Return a sequence of matchs where
    each one is a map of :match and :meta, respectively the matching code and

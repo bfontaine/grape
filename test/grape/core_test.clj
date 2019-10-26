@@ -92,3 +92,7 @@
          "(def f [x y] 42\n   )"
          "(def f\n  [x y]\n  42)"
          )))
+
+(deftest find-code-wildcard
+  (is (some? (g/find-code "(defn f [] 42)" "$")))
+  )
