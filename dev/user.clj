@@ -12,4 +12,4 @@
   (slurp "src/grape/core.clj"))
 
 (def code
-  (g/parse-string s))
+  (g/parse-code s))
