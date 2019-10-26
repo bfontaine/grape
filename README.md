@@ -1,3 +1,5 @@
+<img align="right" width="130" src="./doc/grapes.png"/>
+
 # Grape
 
 **Grape** is a syntax-aware `grep`-like utility for Clojure code.
