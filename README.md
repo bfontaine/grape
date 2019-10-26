@@ -1,21 +1,19 @@
 <img align="right" width="150" src="./doc/grapes.png"/>
 
 # Grape
+**Grape** is a syntax-aware `grep`-like utility for Clojure code. It allows one
+to search for code patterns using Clojure structures.
 
-**Grape** is a syntax-aware `grep`-like utility for Clojure code.
+NOTE: the API is very WIP for now.
 
-The API is very WIP for now.
-
-## Usage
-
-### CLI
+## Command-Line Usage
 
 FIXME
 ```
 lein run <pattern> <file> [<file> ...]
 ```
 
-### Library
+## Library
 
 ```clojure
 (require '[grape.core :as g])
@@ -24,9 +22,13 @@ lein run <pattern> <file> [<file> ...]
 (g/find-codes (slurp "myfile.clj") "(map $ $ $)")
 ```
 
-### Wildcards
+## Patterns
+A pattern is any valid Clojure expression. It can contain some special symbols
+that are interpreted as wildcards.
 
-* `$`: any expression. This matches e.g. `42` and `(defn f [] 42)`.
+### Wildcards
+* `$`: any expression. `$` matches `42` and `(defn f [] 42)`. `(map $)` matches
+       `(map inc)` but not `(map inc [1 2 3])`.
 
 ## License
 
