@@ -100,12 +100,12 @@
              :meta {:start-column 1, :end-column 10
                     :start-line 1, :end-line 1
                     :start-index 0, :end-index 9}}]
-           (g/find-codes code code)))))
+           (g/find-codes code (g/parse-pattern code))))))
 
 (deftest find-code-ignoring-whitespace
   (let [pattern "(def f [x y] 42)"]
     (are [code] (= {:match code}
-                   (dissoc (g/find-code code pattern) :meta))
+                   (dissoc (g/find-code code (g/parse-pattern pattern)) :meta))
 
          "( \t\t  def\n \t  f   [  x \n\n y  ] 42   )"
          "(def f [x y] 42\n   )"
@@ -113,5 +113,5 @@
          )))
 
 (deftest find-code-wildcard
-  (is (some? (g/find-code "(defn f [] 42)" "$")))
+  (is (some? (g/find-code "(defn f [] 42)" (g/parse-pattern "$"))))
   )

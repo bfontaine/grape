@@ -42,10 +42,10 @@
 
 (defn -main
   [& args]
-  (let [{:keys [pattern sources]} (parse-args args)]
+  (let [{:keys [pattern sources]} (parse-args args)
+        pattern (g/parse-pattern pattern)]
     (doseq [source sources]
       ;; TODO don't use slurp not to get URLs
-      ;; TODO don't re-parse the pattern on each source
       ;; TODO support -R or similar
       (let [code (slurp source)]
         (doseq [m (g/find-codes code pattern)]

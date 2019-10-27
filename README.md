@@ -26,6 +26,9 @@ lein run <pattern> <file> [<file> ...]
 A pattern is any valid Clojure expression. It can contain some special symbols
 that are interpreted as wildcards.
 
+Comments, whitespaces, and discard reader macros (`#_`) are ignored when
+matching.
+
 ### Wildcards
 * `$`: any expression. `$` matches `42` and `(defn f [] 42)`. `(map $)` matches
        `(map inc)` but not `(map inc [1 2 3])`.

@@ -134,6 +134,11 @@ This must be a valid Clojure symbol."}
             {}
             meta-keys)))
 
+(defn- subtree->code-match
+  [match]
+  {:match (parcera/code match)
+   :meta  (match-meta match)})
+
 ;; NOTE we lose leading whitespace, e.g.:
 ;; Code:
 ;;   "(let [a 42]
@@ -150,14 +155,15 @@ This must be a valid Clojure symbol."}
 (defn find-codes
   "Find pieces of `code` based on `pattern`. Return a lazy sequence of matchs
    where each one is a map of :match and :meta, respectively the matching code
-   and its location metadata."
+   and its location metadata.
+
+   `pattern` must have been parsed using parse-pattern."
   [code pattern]
+  {:pre [(vector? pattern)]}
   (->> (find-subtrees
          (parse-code code)
-         (parse-pattern pattern))
-       (map (fn [match]
-              {:match (parcera/code match)
-               :meta  (match-meta match)}))))
+         pattern)
+       (map subtree->code-match)))
 
 (defn find-code
   "Equivalent of (first (find-codes code pattern))."
