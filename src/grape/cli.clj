@@ -3,10 +3,13 @@
             [clojure.java.io :as io]
             [clojure.tools.cli :as cli]
             [grape.core :as g])
+  (:import [java.nio.file FileSystems]
+           [java.io File])
   (:gen-class))
 
 (def cli-options
-  [["-h" "--help"]])
+  [["-h" "--help"]
+   ["-r" "--recursive"]])
 
 (defn- usage
   [options-summary]
@@ -24,6 +27,20 @@
     (println msg))
   (System/exit code))
 
+(defn list-clojure-files
+  [root]
+  ;; https://clojuredocs.org/clojure.core/file-seq#example-59f3948ee4b0a08026c48c79
+  (let [clj-matcher (.getPathMatcher (FileSystems/getDefault)
+                                     "glob:*.clj{,s,c,x}")]
+    (->> root
+         io/file
+         file-seq
+         (filter (fn [^File f]
+                   (and (.isFile f)
+                        (.matches clj-matcher
+                                  (.getFileName (.toPath f))))))
+         (map #(.getAbsolutePath ^File %)))))
+
 (defn parse-args
   [args]
   (let [{:keys [options arguments errors summary]} (cli/parse-opts args cli-options)]
@@ -38,15 +55,18 @@
       (exit 0 (usage summary))
 
       :else
-      {:pattern (first arguments)
-       :sources (rest arguments)})))
+      (let [[pattern & sources] arguments]
+        {:pattern pattern
+         :sources (if (:recursive options)
+                    (mapcat list-clojure-files sources)
+                    sources)}))))
 
 (defn -main
   [& args]
   (let [{:keys [pattern sources]} (parse-args args)
         pattern (g/parse-pattern pattern)]
+    ;; TODO if multiple sources, print them before matches
     (doseq [source sources]
-      ;; TODO support -R or similar
       (let [code (slurp (io/file source))]
         (doseq [m (g/find-codes code pattern)]
           (println (:match m)))))))

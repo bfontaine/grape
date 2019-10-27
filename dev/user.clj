@@ -3,7 +3,8 @@
             [clojure.walk :refer [postwalk]]
             [parcera.core :as parcera]
             [instaparse.core :as insta]
-            [grape.core :as g]))
+            [grape.core :as g]
+            [grape.cli :as cli]))
 
 (def s
   (slurp "src/grape/core.clj"))

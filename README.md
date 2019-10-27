@@ -10,7 +10,7 @@ NOTE: the API is very WIP for now.
 
 FIXME
 ```
-lein run <pattern> <file> [<file> ...]
+lein run [-r|--recursive] <pattern> <file> [<file> ...]
 ```
 
 ## Library
