@@ -19,7 +19,8 @@ lein run [-r|--recursive] <pattern> <file> [<file> ...]
 (require '[grape.core :as g])
 
 ;; Find all occurrences of map called with three arguments
-(g/find-codes (slurp "myfile.clj") "(map $ $ $)")
+(let [pattern (g/parse-pattern "(map $ $ $)")]
+  (g/find-codes (slurp "myfile.clj") pattern))
 ```
 
 ## Patterns
@@ -27,7 +28,8 @@ A pattern is any valid Clojure expression. It can contain some special symbols
 that are interpreted as wildcards.
 
 Comments, whitespaces, and discard reader macros (`#_`) are ignored when
-matching.
+matching: `[43]` doesn't match `#_ [43] 42` nor `42 ;; [43]` but it matches
+`[ 43 ]`.
 
 ### Wildcards
 * `$`: any expression. `$` matches `42` and `(defn f [] 42)`. `(map $)` matches
