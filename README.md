@@ -7,9 +7,13 @@ to search for code patterns using Clojure structures.
 Note: this is quite experimental for now.
 
 ## Command-Line
-
 ```
 java -jar grape.jar [-r|--recursive] <pattern> <file> [<file> ...]
+```
+
+If you have [Homebrew](https://brew.sh), you can install it like so:
+```bash
+brew install bfontaine/utils/grape
 ```
 
 ## Library
