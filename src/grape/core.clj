@@ -9,6 +9,9 @@
 (def ^:private node-type first)
 (def ^:private node-children rest)
 
+;; -------------------
+;; Parsing code & patterns
+;; -------------------
 
 (defn- parse-string
   "Parse a string as an AST."
@@ -60,45 +63,62 @@
       drop-whitespace
       first))
 
+
+;; -------------------
+;; Wildcards
+;; -------------------
+
 (def ^{:dynamic true
-       :doc "Symbol used to represent a wildcard expression in a pattern.
+       :doc "Wildcard symbol used to represent any single expression in a pattern.
 This must be a valid Clojure symbol."}
   *wildcard-expression*
   "$")
 
+(defn- wildcard-expression?
+  [node]
+  (= [:symbol *wildcard-expression*]
+     node))
+
+;; -------------------
+;; Matching trees
+;; -------------------
+
 (defn- match?
   "Test if a subtree matches a pattern. Always return false on the root tree."
   [tree pattern]
-  (let [wildcard? (= [:symbol *wildcard-expression*]
-                     pattern)]
-    (cond
-      (= :code (node-type tree))
-      false
+  (cond
+    ;; root tree
+    (= :code (node-type tree))
+    false
 
-      ;; one of them is a leave:
-      ;; - if both are leaves and equal, return true
-      ;; - otherwise false (a leave and a non-leave are never equal)
-      (or (tree-leave? tree) (tree-leave? pattern))
-      (= tree pattern)
+    ;; one of them is a leave:
+    ;; - if both are leaves and equal, return true
+    ;; - otherwise false (a leave and a non-leave are never equal)
+    (or (tree-leave? tree) (tree-leave? pattern))
+    (= tree pattern)
 
-      wildcard?
-      true
+    (wildcard-expression? pattern)
+    true
 
-      ;; [:symbol "foo"] ≠ [:simple-keyword "foo"]
-      (not= (node-type tree) (node-type pattern))
-      false
+    ;; [:symbol "foo"] ≠ [:simple-keyword "foo"]
+    (not= (node-type tree) (node-type pattern))
+    false
 
-      :else
-      (let [tree-children    (drop-whitespace (node-children tree))
-            pattern-children (drop-whitespace (node-children pattern))]
-        (if (not= (count tree-children) (count pattern-children))
-          false
-          (every? true?
-                  (map match?
-                       tree-children
-                       pattern-children)))))))
+    :else
+    (let [tree-children    (drop-whitespace (node-children tree))
+          pattern-children (drop-whitespace (node-children pattern))]
+      (if (not= (count tree-children) (count pattern-children))
+        false
+        (every? true?
+                (map match?
+                     tree-children
+                     pattern-children))))))
 
-(defn- ->code
+;; -------------------
+;; High-level tree functions
+;; -------------------
+
+(defn- wrap-code-parent
   "Wrap a tree in a :code parent with the same metadata."
   [tree]
   (with-meta [:code tree] (meta tree)))
@@ -109,7 +129,7 @@ This must be a valid Clojure symbol."}
   (->> tree
        (tree-seq tree-node? node-children)
        (filter #(match? % pattern))
-       (map ->code)))
+       (map wrap-code-parent)))
 
 (defn find-subtree
   "Equivalent of (first (find-subtrees tree pattern))."
@@ -138,6 +158,10 @@ This must be a valid Clojure symbol."}
   [match]
   {:match (parcera/code match)
    :meta  (match-meta match)})
+
+;; -------------------
+;; Code matching
+;; -------------------
 
 ;; NOTE we lose leading whitespace, e.g.:
 ;; Code:
