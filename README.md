@@ -4,27 +4,38 @@
 **Grape** is a syntax-aware `grep`-like utility for Clojure code. It allows one
 to search for code patterns using Clojure structures.
 
-NOTE: the API is very WIP for now.
+Note: this is quite experimental for now.
 
 ## Command-Line Usage
 
-FIXME
 ```
-lein run [-r|--recursive] <pattern> <file> [<file> ...]
+grape [-r|--recursive] <pattern> <file> [<file> ...]
 ```
 
 ## Library
 
 ```clojure
+;; Lein/Boot
+[bfontaine/grape "0.1.0"]
+
+;; Deps
+bfontaine/grape {:mvn/version "0.1.0"}
+```
+
+
+```clojure
 (require '[grape.core :as g])
 
+(def my-code (slurp "myfile.clj"))
+
 ;; Find all occurrences of map called with three arguments
-(let [pattern (g/pattern "(map $ $ $)")]
-  (g/find-codes (slurp "myfile.clj") pattern))
+(g/find-codes my-code (g/pattern "(map $ $ $)"))
 
 ;; Find all occurrences of (condp = ...)
-(let [pattern (g/pattern "(condp = $&)")]
-  (g/find-codes (slurp "myfile.clj") pattern))
+(g/find-codes my-code (g/pattern "(condp = $&)"))
+
+;; Find all occurrences of `if` with no `else` clause
+(g/find-codes my-code (g/pattern "(if $ $)"))
 ```
 
 ## Patterns
