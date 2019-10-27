@@ -1,5 +1,6 @@
 (ns grape.cli
   (:require [clojure.string :as str]
+            [clojure.java.io :as io]
             [clojure.tools.cli :as cli]
             [grape.core :as g])
   (:gen-class))
@@ -45,8 +46,7 @@
   (let [{:keys [pattern sources]} (parse-args args)
         pattern (g/parse-pattern pattern)]
     (doseq [source sources]
-      ;; TODO don't use slurp not to get URLs
       ;; TODO support -R or similar
-      (let [code (slurp source)]
+      (let [code (slurp (io/file source))]
         (doseq [m (g/find-codes code pattern)]
           (println (:match m)))))))
