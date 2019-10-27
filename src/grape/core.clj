@@ -9,6 +9,7 @@
 (def ^:private node-type first)
 (def ^:private node-children rest)
 
+
 (defn- parse-string
   "Parse a string as an AST."
   [code]
@@ -22,6 +23,32 @@
     code
     (parse-string code)))
 
+(defn- drop-whitespace
+  "Drop whitespaces and discarded forms from a sequence of nodes. Not lazy."
+  [xs]
+  (:nodes
+    (reduce (fn [{:keys [discard nodes] :as acc} node]
+              ;; Parcera parses discard macros as standalone elements. We have
+              ;; to "apply" them ourselves.
+              (cond
+                ;; drop whitespace
+                (= :whitespace (node-type node))
+                acc
+
+                ;; discard macro
+                (= :discard (node-type node))
+                (update acc :discard inc)
+
+                ;; discarded
+                (pos-int? discard)
+                (update acc :discard dec)
+
+                :else
+                (update acc :nodes #(conj % node))))
+            {:nodes   []
+             :discard 0}
+            xs)))
+
 (defn parse-pattern
   "Parse a code pattern to be matched against parsed code. Any expression
    after the first one is discared."
@@ -30,11 +57,8 @@
       str/trim
       parse-string
       node-children
+      drop-whitespace
       first))
-
-(defn- drop-whitespace
-  [xs]
-  (remove #(= :whitespace (node-type %)) xs))
 
 (def ^{:dynamic true
        :doc "Symbol used to represent a wildcard expression in a pattern.
@@ -124,9 +148,9 @@ This must be a valid Clojure symbol."}
 ;;   |     a)"
 ;;
 (defn find-codes
-  "Find pieces of `code` based on `pattern`. Return a sequence of matchs where
-   each one is a map of :match and :meta, respectively the matching code and
-   its location metadata."
+  "Find pieces of `code` based on `pattern`. Return a lazy sequence of matchs
+   where each one is a map of :match and :meta, respectively the matching code
+   and its location metadata."
   [code pattern]
   (->> (find-subtrees
          (parse-code code)

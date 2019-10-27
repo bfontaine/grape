@@ -17,8 +17,37 @@
 (defn g [x] x)")
 
 ;; -------------------
+;; Parsing
+;; -------------------
+
+(deftest parse-pattern-test
+  (testing "leading whitespace and comments"
+    (are [pattern] (= [:number "42"] (g/parse-pattern pattern))
+         "42"
+         "    42"
+         "\n42"
+         ";; this is my pattern\n42"))
+
+  (testing "discard"
+    (are [pattern] (= [:number "42"] (g/parse-pattern pattern))
+         "#_ 41 42"
+         "#_ #_ 1 2 42"
+         "#_ 1 #_ 2 42 #_ 3"
+         "#_ (1 2 3) 42"
+         "#_ ;; discard the next element\n1 42")))
+
+;; -------------------
 ;; Tree matching
 ;; -------------------
+
+(deftest match?-test
+  (testing "equal to self"
+    (are [x] (#'g/match? x x)
+         [:whitespace " "]
+         [:symbol "foo"]
+         [:simple-keyword "foo"]
+         [:list [:symbol "a"] [:symbol "b"] [:number "42"]]
+         [:discard [:whitespace " "]])))
 
 (deftest find-subtree-exact-match
   (testing "same tree"
@@ -60,16 +89,6 @@
            "[12 3]"
            "[1 2 3 4]"
            "[1 2 3 4 5 6 7]"))))
-
-(deftest match-test
-  (testing "equal to self"
-    (are [x] (#'g/match? x x)
-         [:whitespace " "]
-         [:symbol "foo"]
-         [:simple-keyword "foo"]
-         [:list [:symbol "a"] [:symbol "b"] [:number "42"]]
-       ))
-  )
 
 ;; -------------------
 ;; Code matching
