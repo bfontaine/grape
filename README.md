@@ -19,7 +19,7 @@ lein run [-r|--recursive] <pattern> <file> [<file> ...]
 (require '[grape.core :as g])
 
 ;; Find all occurrences of map called with three arguments
-(let [pattern (g/parse-pattern "(map $ $ $)")]
+(let [pattern (g/pattern "(map $ $ $)")]
   (g/find-codes (slurp "myfile.clj") pattern))
 ```
 

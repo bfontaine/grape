@@ -49,9 +49,9 @@
              :discard 0}
             xs)))
 
-(defn parse-pattern
-  "Parse a code pattern to be matched against parsed code. Any expression
-   after the first one is discared."
+(defn pattern
+  "Parse a piece of code as a pattern to be matched. Any expression after the
+   first one is discared as well as comments and discarded forms."
   [code]
   (-> code
       str/trim
@@ -157,7 +157,7 @@ This must be a valid Clojure symbol."}
    where each one is a map of :match and :meta, respectively the matching code
    and its location metadata.
 
-   `pattern` must have been parsed using parse-pattern."
+   `pattern` must have been constructed using grape.core/pattern."
   [code pattern]
   {:pre [(vector? pattern)]}
   (->> (find-subtrees

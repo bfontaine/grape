@@ -64,7 +64,7 @@
 (defn -main
   [& args]
   (let [{:keys [pattern sources]} (parse-args args)
-        pattern (g/parse-pattern pattern)]
+        pattern (g/pattern pattern)]
     ;; TODO if multiple sources, print them before matches
     (doseq [source sources]
       (let [code (slurp (io/file source))]
