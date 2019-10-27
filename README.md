@@ -21,6 +21,10 @@ lein run [-r|--recursive] <pattern> <file> [<file> ...]
 ;; Find all occurrences of map called with three arguments
 (let [pattern (g/pattern "(map $ $ $)")]
   (g/find-codes (slurp "myfile.clj") pattern))
+
+;; Find all occurrences of (condp = ...)
+(let [pattern (g/pattern "(condp = $&)")]
+  (g/find-codes (slurp "myfile.clj") pattern))
 ```
 
 ## Patterns
@@ -34,6 +38,11 @@ matching: `[43]` doesn't match `#_ [43] 42` nor `42 ;; [43]` but it matches
 ### Wildcards
 * `$`: any expression. `$` matches `42` and `(defn f [] 42)`. `(map $)` matches
        `(map inc)` but not `(map inc [1 2 3])`.
+* `$&`: any number of expressions, including zero. `(f $&)` matches `(f)`,
+        `(f 1)`, `(f 1 2)`, etc. There can be only one `$&` per sequence of
+        expressions (contiguous `$&`s are equivalent to one `$&`).
+
+Wildcards can be combined: `#{$ $&}` matches a set with at least one element.
 
 ## License
 

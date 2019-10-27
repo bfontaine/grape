@@ -112,6 +112,41 @@
          "(def f\n  [x y]\n  42)"
          )))
 
-(deftest find-code-wildcard
+(deftest find-code-expression-wildcard
   (is (some? (g/find-code "(defn f [] 42)" (g/pattern "$"))))
-  )
+  (is (some? (g/find-code "(let [a (range 3)]
+                             (map * a a))"
+                          (g/pattern "(map $ $ $)")))))
+
+(deftest find-code-expressions-wildcard
+  (let [code "(f 1 2 3)"]
+    (are [pattern] (= {:match code}
+                      (dissoc (g/find-code code (g/pattern pattern)) :meta))
+         "(f 1 2 3)"
+         "($&)"
+         "($& $&)"
+         "(f $&)"
+         "(f 1 $&)"
+         "(f 1 2 $&)"
+         "(f 1 2 3 $&)"
+         "($& f 1 2 3)"
+         "($& 1 2 3)"
+         "(f $& 2 3)"
+         "(f $& 3)"
+         "(f 1 $& 2 3)")
+
+    (are [pattern] (nil? (g/find-code code (g/pattern pattern)))
+         "(f $& 1 2 3 $&)"
+         "($& f $& 1 $& 2 3)"
+         "($& 1 $& $& $&)")))
+
+(deftest find-code-mixed-wildcards
+  (let [pattern (g/pattern "#{$ $&}")]
+    (is (nil? (g/find-code "#{}" pattern)))
+    (is (some? (g/find-code "#{1}" pattern)))
+    (is (some? (g/find-code "#{1 2 3}" pattern))))
+
+  (let [pattern (g/pattern "#{0 $ 2 $&}")]
+    (is (nil? (g/find-code "#{0 2 3}" pattern)))
+    (is (nil? (g/find-code "#{0 1 3}" pattern)))
+    (is (some? (g/find-code "#{0 1 2}" pattern)))))

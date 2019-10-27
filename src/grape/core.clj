@@ -74,14 +74,70 @@ This must be a valid Clojure symbol."}
   *wildcard-expression*
   "$")
 
+(def ^{:dynamic true
+       :doc "Wildcard symbol used to represent any number of expressions
+in a pattern, including zero. This must be a valid Clojure symbol."}
+  *wildcard-expressions*
+  "$&")
+
 (defn- wildcard-expression?
   [node]
   (= [:symbol *wildcard-expression*]
      node))
 
+(defn- wildcard-expressions?
+  [node]
+  (= [:symbol *wildcard-expressions*]
+     node))
+
 ;; -------------------
 ;; Matching trees
 ;; -------------------
+
+(declare match?)
+
+(defn- exact-match-seq?
+  "Test if a sequence of subtrees match a sequence of patterns. This ignores
+   any expressions wildcard."
+  [trees patterns]
+  (if (not= (count trees) (count patterns))
+      false
+      (every? true?
+              (map match?
+                   trees
+                   patterns))))
+
+(defn- match-seq?
+  "Test if a sequence of subtrees match a sequence of patterns."
+  [trees patterns]
+  (let [trees    (drop-whitespace trees)
+        patterns (drop-whitespace patterns)
+
+        ;; Assume a pattern sequence have the following format:
+        ;;   (expression* expressions-wildcard expression*)
+        ;; For convenience, we allow multiple expressions-wildcards to occur
+        ;; as if they were all one wildcard.
+        ;;
+        ;; We first split the pattern to extract that (expression* part from
+        ;; the rest.
+        [start end-with-wildcard] (split-with (complement wildcard-expressions?)
+                                              patterns)
+        ;; Then split the rest into wildcards and the end.
+        [wildcards end] (split-with wildcard-expressions? end-with-wildcard)]
+
+    ;; If we have no wildcard, fallback on the default matching.
+    (if (empty? wildcards)
+      (exact-match-seq? trees patterns)
+      ;; Otherwise, extract the start and end of the subtrees.
+      (let [
+        ;; Take the right number of subtrees at the beginning so they match
+        ;; 'start' patterns.
+        start-trees (take (count start) trees)
+        ;; Do the same with the end subtrees.
+        end-trees (drop (- (count trees) (count end)) trees)]
+      (and
+        (exact-match-seq? start-trees start)
+        (exact-match-seq? end-trees end))))))
 
 (defn- match?
   "Test if a subtree matches a pattern. Always return false on the root tree."
@@ -105,14 +161,9 @@ This must be a valid Clojure symbol."}
     false
 
     :else
-    (let [tree-children    (drop-whitespace (node-children tree))
-          pattern-children (drop-whitespace (node-children pattern))]
-      (if (not= (count tree-children) (count pattern-children))
-        false
-        (every? true?
-                (map match?
-                     tree-children
-                     pattern-children))))))
+    (let [tree-children    (node-children tree)
+          pattern-children (node-children pattern)]
+      (match-seq? tree-children pattern-children))))
 
 ;; -------------------
 ;; High-level tree functions
