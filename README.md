@@ -6,10 +6,10 @@ to search for code patterns using Clojure structures.
 
 Note: this is quite experimental for now.
 
-## Command-Line Usage
+## Command-Line
 
 ```
-grape [-r|--recursive] <pattern> <file> [<file> ...]
+java -jar grape.jar [-r|--recursive] <pattern> <file> [<file> ...]
 ```
 
 ## Library

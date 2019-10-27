@@ -8,6 +8,7 @@
                  [carocad/parcera "0.3.1"]]
   :main grape.cli
   :repl-options {:init-ns user}
-  :profiles {:dev {:source-paths ["dev"]
+  :profiles {:uberjar {:aot :all}
+             :dev {:source-paths ["dev"]
                    :global-vars {*warn-on-reflection* true}
                    :dependencies [[org.clojure/tools.namespace  "0.2.11"]]}})
