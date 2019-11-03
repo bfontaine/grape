@@ -140,6 +140,15 @@
          "($& f $& 1 $& 2 3)"
          "($& 1 $& $& $&)")))
 
+(deftest find-code-typed-expression-wildcard
+  (let [code "(defn f \"hey\" [x] (+ x 2))"]
+    (are [pattern] (= {:match code}
+                      (dissoc (g/find-code code (g/pattern pattern)) :meta))
+         "(defn f $string [x] (+ x 2))"
+         "($symbol $symbol $string $vector $list)"
+         "(defn $symbol \"hey\" [x] ($symbol x 2))"
+      )))
+
 (deftest find-code-mixed-wildcards
   (let [pattern (g/pattern "#{$ $&}")]
     (is (nil? (g/find-code "#{}" pattern)))

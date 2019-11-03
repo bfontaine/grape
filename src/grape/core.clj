@@ -70,7 +70,10 @@
 
 (def ^{:dynamic true
        :doc "Wildcard symbol used to represent any single expression in a pattern.
-This must be a valid Clojure symbol."}
+This must be a valid Clojure symbol.
+It is also used as a prefix for typed wildcards. For example, if this is set to
+$ (the default), $string represents any single string expression; $list any
+single list expression; etc."}
   *wildcard-expression*
   "$")
 
@@ -89,6 +92,12 @@ in a pattern, including zero. This must be a valid Clojure symbol."}
   [node]
   (= [:symbol *wildcard-expressions*]
      node))
+
+(defn- typed-wildcard-expression?
+  [node]
+  (and (tree-node? node)
+       (= :symbol (node-type node))
+       (str/starts-with? (first (node-children node)) *wildcard-expression*)))
 
 ;; -------------------
 ;; Matching trees
@@ -139,6 +148,13 @@ in a pattern, including zero. This must be a valid Clojure symbol."}
         (exact-match-seq? start-trees start)
         (exact-match-seq? end-trees end))))))
 
+(defn- match-typed-wildcard-expression?
+  [node pattern]
+  (let [ntype (name (node-type node))
+        pattern-name (str *wildcard-expression* ntype)]
+    (= [:symbol pattern-name]
+       pattern)))
+
 (defn- match?
   "Test if a subtree matches a pattern. Always return false on the root tree."
   [tree pattern]
@@ -155,6 +171,9 @@ in a pattern, including zero. This must be a valid Clojure symbol."}
 
     (wildcard-expression? pattern)
     true
+
+    (typed-wildcard-expression? pattern)
+    (match-typed-wildcard-expression? tree pattern)
 
     ;; [:symbol "foo"] ≠ [:simple-keyword "foo"]
     (not= (node-type tree) (node-type pattern))
