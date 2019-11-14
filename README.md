@@ -4,9 +4,9 @@
 **Grape** is a syntax-aware `grep`-like utility for Clojure code. It allows one
 to search for code patterns using Clojure structures.
 
-Note: this is quite experimental for now.
-
 ## Command-Line
+This is experimental for now.
+
 ```
 java -jar grape.jar [-r|--recursive] <pattern> <file> [<file> ...]
 ```
@@ -40,24 +40,32 @@ bfontaine/grape {:mvn/version "0.1.0"}
 
 ;; Find all occurrences of `if` with no `else` clause
 (g/find-codes my-code (g/pattern "(if $ $)"))
+; => ({:match "(if ...)", :meta {...}}, ...)
 ```
+
+Matches are map with a `:match` key that contains a string with the matching
+code and a `:meta` key with line/column metadata which you can use to locate
+the code in your file.
 
 ## Patterns
 A pattern is any valid Clojure expression. It can contain some special symbols
 that are interpreted as wildcards.
 
 Comments, whitespaces, and discard reader macros (`#_`) are ignored when
-matching: `[43]` doesn't match `#_ [43] 42` nor `42 ;; [43]` but it matches
-`[ 43 ]`.
+matching.
 
 ### Wildcards
-* `$`: any expression. `$` matches `42` and `(defn f [] 42)`. `(map $)` matches
-       `(map inc)` but not `(map inc [1 2 3])`.
+* `$`: any expression.
 * `$&`: any number of expressions, including zero. `(f $&)` matches `(f)`,
-        `(f 1)`, `(f 1 2)`, etc. There can be only one `$&` per sequence of
-        expressions (contiguous `$&`s are equivalent to one `$&`).
+  `(f 1)`, `(f 1 2)`, etc.
+* `$string`, `$list`, etc: any expression of the given type. These mirror
+  [Parcera][parcera]’s grammar.
+
+[See the full patterns documentation](./doc/Patterns.md).
 
 Wildcards can be combined: `#{$ $&}` matches a set with at least one element.
+
+[parcera]: https://github.com/carocad/parcera#parcera
 
 ## License
 

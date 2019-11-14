@@ -149,6 +149,51 @@
          "(defn $symbol \"hey\" [x] ($symbol x 2))"
       )))
 
+(deftest find-code-typed-expression-wildcard-mismatch
+  (let [code "(defn f \"hey\" [x] (+ x 2))"]
+    (are [pattern] (nil? (g/find-code code (g/pattern pattern)))
+         "(defn f $string $list (+ x 2))"
+         "($symbol $string $symbol $vector $list)"
+         "(defn $symbol \"hy\" [x] ($symbol x 2))")))
+
+(deftest find-code-typed-expression-all-wildcards
+  (are [pattern code] (= {:match code}
+                         (dissoc (g/find-code code (g/pattern pattern)) :meta))
+       ;; https://github.com/carocad/parcera/blob/d6b28b1058ef2af447a9452f96c7b6053e59f613/src/parcera/core.cljc#L26
+        "$symbol" "foo"
+        "$symbol" "foo/bar"
+        "$symbol" "clojure.string/foo"
+        "$string" "\"foo\""
+        "$simple-keyword" ":foo"
+        "$macro-keyword" "::foo"
+        "$regex" "#\"foo\""
+        "$symbolic" "##Inf"
+        "$number" "42"
+        "$number" "3.14"
+        "$character" "\\a"
+        "$character" "\\space"
+
+        "$deref" "@foo"
+        "$quote" "'foo"
+        "$unquote" "~foo"
+        "$unquote-splicing" "~@foo"
+        "$backtick" "`foo"
+        "$var-quote" "#'foo"
+
+        "$conditional" "#?(:cljs nil)"
+        "$conditional-splicing" "#?@(:cljs nil)"
+
+        "$metadata" "^:foo yo"
+
+        "$function" "#(do %)"
+
+        "$list" "(f 2 3)"
+        "$vector" "[]"
+
+        "$map" "{}"
+        "$set" "#{}"
+       ))
+
 (deftest find-code-mixed-wildcards
   (let [pattern (g/pattern "#{$ $&}")]
     (is (nil? (g/find-code "#{}" pattern)))
