@@ -20,10 +20,10 @@ brew install bfontaine/utils/grape
 
 ```clojure
 ;; Lein/Boot
-[bfontaine/grape "0.1.0"]
+[bfontaine/grape "0.2.0"]
 
 ;; Deps
-bfontaine/grape {:mvn/version "0.1.0"}
+bfontaine/grape {:mvn/version "0.2.0"}
 ```
 
 
@@ -40,7 +40,7 @@ bfontaine/grape {:mvn/version "0.1.0"}
 
 ;; Find all occurrences of `if` with no `else` clause
 (g/find-codes my-code (g/pattern "(if $ $)"))
-; => ({:match "(if ...)", :meta {...}}, ...)
+; => ({:match "(if …)", :meta {…}}, …)
 ```
 
 Matches are map with a `:match` key that contains a string with the matching
