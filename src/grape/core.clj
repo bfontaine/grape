@@ -245,7 +245,7 @@ in a pattern, including zero. This must be a valid Clojure symbol."}
 ;; Instead of:
 ;;   "  (+ a
 ;;   |     a)"
-;;
+;; This can be fixed by the caller using :start-colum in :meta.
 (defn find-codes
   "Find pieces of `code` based on `pattern`. Return a lazy sequence of matchs
    where each one is a map of :match and :meta, respectively the matching code
