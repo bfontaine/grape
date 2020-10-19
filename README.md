@@ -4,16 +4,12 @@
 **Grape** is a syntax-aware `grep`-like utility for Clojure code. It allows one to search for code
 patterns using Clojure structures.
 
-## Command-Line
-This is experimental for now.
+This is experimental for now (see [the roadmap](./ROADMAP.md)).
 
+## Command-line
+### Usage
 ```
-java -jar grape.jar [-r|--recursive] <pattern> <file> [<file> ...]
-```
-
-If you have [Homebrew](https://brew.sh), you can install it like so:
-```bash
-brew install bfontaine/utils/grape
+$ grape [-r|--recursive] <pattern> <file> [<file> ...]
 ```
 
 For example, to find all usages of `map` called with a function and two sequences:
@@ -23,6 +19,17 @@ For example, to find all usages of `map` called with a function and two sequence
    (map match?
         trees
         patterns)
+```
+
+### Install
+Either get the standalone binary (faster) or a jar (slower) from the [Releases page][releases].
+
+[releases]: https://github.com/bfontaine/grape/releases
+
+
+If you have [Homebrew](https://brew.sh), you can install it like so:
+```bash
+brew install bfontaine/utils/grape
 ```
 
 ## Library
