@@ -2,13 +2,11 @@
 
 Patterns consist of literals and/or wildcards.
 
-They are matched recursively: `[$]` matches `[[1]]` twice; once on `[[1]]` and
-once on `[1]`.
+They are matched recursively: `[$]` matches `[[1]]` twice; once on `[[1]]` and once on `[1]`.
 
 ## Literals
 
-literals are matched, well, literally. Like in a regular expression, they match
-their own representation.
+literals are matched, well, literally. Like in a regular expression, they match their own representation.
 
 ## Wildcards
 ### `$`
@@ -32,14 +30,15 @@ equivalent to one `$&`).
 matches any expression with the given type. See the table below for a
 description of the available types:
 
-| Pattern | Description | Example expressions |
+| Pattern | Description | Example expressions |
 |:---     | :---        | :---                |
 | `$backtick` | a backtick-ed expression | `` `foo `` |
 | `$character` | a character | `\space`, `\a` |
 | `$conditional-splicing` | a reader splicing conditional | `#?@(:cljs nil)` |
 | `$conditional` | a reader conditional | `#?(:cljs nil)` |
 | `$deref` | a dereferenced expression using `@` | `@foo` |
-| `$function` | an anonymous function | `#(do %)` |
+| `$fn` | an anonymous function | `#(do %)` |
+| `$keyword` | a keyword | `:foo` |
 | `$list` | a list | `(f 2 3)` |
 | `$macro-keyword` | a keyword defined with `::` | `::foo` |
 | `$map` | a map | `{}` |
@@ -48,7 +47,6 @@ description of the available types:
 | `$quote` | a quoted expression | `'foo` |
 | `$regex` | a regular expression | `#"foo"` |
 | `$set` | a set | `#{}` |
-| `$simple-keyword` | a keyword | `:foo` |
 | `$string` | a string | `"foo"` |
 | `$symbol` | a symbol | `foo`, `foo/bar`, `clojure.string/trim` |
 | `$symbolic` | a special symbol such as `##NaN` or `##Inf` | `##Inf` |
@@ -57,12 +55,11 @@ description of the available types:
 | `$var-quote` | | `#'foo` |
 | `$vector` | a vector | `[]` |
 
-This list is based on [Parcera’s grammar][pg].
+This list is based on [Parcera’s grammar][pg], except that underscores are replaced with dashes.
 
-[pg]: https://github.com/carocad/parcera/blob/d6b28b1058ef2af447a9452f96c7b6053e59f613/src/parcera/core.cljc#L26
+[pg]: https://github.com/carocad/parcera/blob/83cd988e69116b67c620c099f78b693ac5e37233/src/Clojure.g4
 
-Note: when matching collections you can have a better control over their
-content by using litterals: `$vector` matches any vector, while `[]` matches
-empty vectors and `[$ $ $]` matches vectors of exactly 3 elements. These can of
-course be combined: `[$ $number $ $regex]` matches all 4-elements vectors where
+Note: when matching collections you can have a better control over their content by using literals:
+`$vector` matches any vector, while `[]` matches empty vectors and `[$ $ $]` matches vectors of exactly
+3 elements. These can of course be combined: `[$ $number $ $regex]` matches all 4-elements vectors where
 the second one is a number and the fourth and last one a regular expression.

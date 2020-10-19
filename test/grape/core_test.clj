@@ -22,14 +22,14 @@
 
 (deftest parse-pattern-test
   (testing "leading whitespace and comments"
-    (are [pattern] (= [:number "42"] (g/pattern pattern))
+    (are [pattern] (= '(:number "42") (g/pattern pattern))
                    "42"
                    "    42"
                    "\n42"
                    ";; this is my pattern\n42"))
 
   (testing "discard"
-    (are [pattern] (= [:number "42"] (g/pattern pattern))
+    (are [pattern] (= '(:number "42") (g/pattern pattern))
                    "#_ 41 42"
                    "#_ #_ 1 2 42"
                    "#_ 1 #_ 2 42 #_ 3"
@@ -45,15 +45,20 @@
     (are [x] (#'g/match? x x)
              [:whitespace " "]
              [:symbol "foo"]
-             [:simple-keyword "foo"]
+             [:keyword "foo"]
              [:list [:symbol "a"] [:symbol "b"] [:number "42"]]
              [:discard [:whitespace " "]])))
 
 (deftest find-subtree-exact-match
   (testing "same tree"
-    (let [t (g/parse-code simple-defn)
-          p (g/pattern simple-defn)]
-      (is (= t (g/find-subtree t p)))))
+    (are [code] (let [t (g/parse-code code)
+                      p (g/pattern code)]
+                  (= t (g/find-subtree t p)))
+
+                simple-defn
+                "(map f a)"
+                "(map f a b)"
+                "(+ 1 2)"))
 
   (let [t (g/parse-code simple-ns)]
     (testing "top-level tree"
@@ -97,9 +102,8 @@
 (deftest find-codes-exact-match
   (let [code "(def a 1)"]
     (is (= [{:match code
-             :meta  {:start-column 1, :end-column 10
-                     :start-line   1, :end-line 1
-                     :start-index  0, :end-index 9}}]
+             :meta  {:start {:row 1 :column 0}
+                     :end   {:row 1 :column 9}}}]
            (g/find-codes code (g/pattern code))))))
 
 (deftest find-code-ignoring-whitespace
@@ -164,7 +168,7 @@
                       "$symbol" "foo/bar"
                       "$symbol" "clojure.string/foo"
                       "$string" "\"foo\""
-                      "$simple-keyword" ":foo"
+                      "$keyword" ":foo"
                       "$macro-keyword" "::foo"
                       "$regex" "#\"foo\""
                       "$symbolic" "##Inf"
@@ -185,7 +189,7 @@
 
                       "$metadata" "^:foo yo"
 
-                      "$function" "#(do %)"
+                      "$fn" "#(do %)"
 
                       "$list" "(f 2 3)"
                       "$vector" "[]"

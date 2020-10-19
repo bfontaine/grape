@@ -1,64 +1,43 @@
 (ns grape.core
   (:require [clojure.string :as str]
-            [instaparse.core :as insta]
             [parcera.core :as parcera]))
 
-(def ^:private tree-node? vector?)
+(defn- tree-node?
+  [x]
+  (and (sequential? x)
+       (keyword? (first x))))
+
 (def ^:private tree-leave? string?)
+
+(def ^:private pattern?
+  tree-node?)
 
 (def ^:private node-type first)
 (def ^:private node-children rest)
+(def ^:private node-child second)
 
 ;; -------------------
 ;; Parsing code & patterns
 ;; -------------------
 
-(defn- parse-string
-  "Parse a string as an AST."
-  [code]
-  (parcera/clojure code))
-
 (defn parse-code
   "Parse code."
   [code]
-  ;; https://github.com/Engelberg/instaparse#line-and-column-information
-  (insta/add-line-and-column-info-to-metadata
-    code
-    (parse-string code)))
+  (parcera/ast code))
 
 (defn- drop-whitespace
-  "Drop whitespaces and discarded forms from a sequence of nodes. Not lazy."
+  "Drop whitespaces, comments and discarded forms from a sequence of nodes."
   [xs]
-  (:nodes
-    (reduce (fn [{:keys [discard nodes] :as acc} node]
-              ;; Parcera parses discard macros as standalone elements. We have
-              ;; to "apply" them ourselves.
-              (cond
-                ;; drop whitespace
-                (= :whitespace (node-type node))
-                acc
-
-                ;; discard macro
-                (= :discard (node-type node))
-                (update acc :discard inc)
-
-                ;; discarded
-                (pos-int? discard)
-                (update acc :discard dec)
-
-                :else
-                (update acc :nodes #(conj % node))))
-            {:nodes   []
-             :discard 0}
-            xs)))
+  (remove #(#{:whitespace :comment :discard} (node-type %)) xs))
 
 (defn pattern
   "Parse a piece of code as a pattern to be matched. Any expression after the
-   first one is discared as well as comments and discarded forms."
+   first one is discarded as well as comments and discarded forms."
   [code]
+  {:post [(pattern? %)]}
   (-> code
       str/trim
-      parse-string
+      parse-code
       node-children
       drop-whitespace
       first))
@@ -85,19 +64,19 @@ in a pattern, including zero. This must be a valid Clojure symbol."}
 
 (defn- wildcard-expression?
   [node]
-  (= [:symbol *wildcard-expression*]
+  (= (list :symbol *wildcard-expression*)
      node))
 
 (defn- wildcard-expressions?
   [node]
-  (= [:symbol *wildcard-expressions*]
+  (= (list :symbol *wildcard-expressions*)
      node))
 
 (defn- typed-wildcard-expression?
   [node]
-  (and (tree-node? node)
+  (and (pattern? node)
        (= :symbol (node-type node))
-       (str/starts-with? (first (node-children node)) *wildcard-expression*)))
+       (str/starts-with? (node-child node) *wildcard-expression*)))
 
 ;; -------------------
 ;; Matching trees
@@ -149,11 +128,16 @@ in a pattern, including zero. This must be a valid Clojure symbol."}
           (exact-match-seq? end-trees end))))))
 
 (defn- match-typed-wildcard-expression?
+  "Test if 'node' matches typed-wildcard 'pattern'."
   [node pattern]
-  (let [ntype        (name (node-type node))
-        pattern-name (str *wildcard-expression* ntype)]
-    (= [:symbol pattern-name]
-       pattern)))
+  ;; pattern == (:symbol wildcard-name), with wildcard-name = $something
+  ;; node == (:something_else ...)
+  ;; we're checking if $something-else == $something
+  (let [wildcard-name (node-child pattern)
+        node-type (str/replace (name (node-type node)) #"_" "-")
+        node-type-as-a-wildcard-name (str *wildcard-expression* node-type)]
+    (= wildcard-name
+       node-type-as-a-wildcard-name)))
 
 (defn- match?
   "Test if a subtree matches a pattern. Always return false on the root tree."
@@ -175,7 +159,7 @@ in a pattern, including zero. This must be a valid Clojure symbol."}
     (typed-wildcard-expression? pattern)
     (match-typed-wildcard-expression? tree pattern)
 
-    ;; [:symbol "foo"] ≠ [:simple-keyword "foo"]
+    ;; [:symbol "foo"] ≠ [:keyword "foo"]
     (not= (node-type tree) (node-type pattern))
     false
 
@@ -207,12 +191,6 @@ in a pattern, including zero. This must be a valid Clojure symbol."}
   ;; first implementation: one match + one expression w/ no wildcard
   (first (find-subtrees tree pattern)))
 
-(def ^:private
-  meta-keys
-  [:instaparse.gll/start-column, :instaparse.gll/end-column
-   :instaparse.gll/start-line, :instaparse.gll/end-line
-   :instaparse.gll/start-index, :instaparse.gll/end-index])
-
 (defn- match-meta
   "Extract the Instaparse-added location metadata from a match and return it."
   [match]
@@ -222,7 +200,7 @@ in a pattern, including zero. This must be a valid Clojure symbol."}
                 (keyword (name meta-key))
                 (get metadata meta-key)))
             {}
-            meta-keys)))
+            [:parcera.core/start :parcera.core/end])))
 
 (defn- subtree->code-match
   [match]
@@ -253,7 +231,7 @@ in a pattern, including zero. This must be a valid Clojure symbol."}
 
    `pattern` must have been constructed using grape.core/pattern."
   [code pattern]
-  {:pre [(vector? pattern)]}
+  {:pre [(pattern? pattern)]}
   (->> (find-subtrees
          (parse-code code)
          pattern)

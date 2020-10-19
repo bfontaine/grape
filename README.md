@@ -58,8 +58,7 @@ matching.
 * `$`: any expression.
 * `$&`: any number of expressions, including zero. `(f $&)` matches `(f)`,
   `(f 1)`, `(f 1 2)`, etc.
-* `$string`, `$list`, etc: any expression of the given type. These mirror
-  [Parcera][parcera]’s grammar.
+* `$string`, `$list`, etc: any expression of the given type.
 
 [See the full patterns documentation](./doc/Patterns.md).
 
@@ -69,7 +68,7 @@ Wildcards can be combined: `#{$ $&}` matches a set with at least one element.
 
 ## License
 
-Copyright © 2019 Baptiste Fontaine
+Copyright © 2019-2020 Baptiste Fontaine
 
 This program and the accompanying materials are made available under the terms
 of the Eclipse Public License 2.0 which is available at
