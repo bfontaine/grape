@@ -1,6 +1,6 @@
 # Grape Changelog
 
-## 0.3.0 (unreleased)
+## 0.3.0 (2020/10/19)
 
 This release bumps Parsera. It’s now based on Antlr4 rather than Instaparse. This changes a few things:
 
@@ -17,6 +17,10 @@ The match metadata’s format changes:
 ```
 
 Some typed wildcards change: `$simple-keyword` is now `$keyword` and `$function` is now `$fn`.
+
+This release also includes a first GraalVM-based standalone binary. Thanks to both GraalVM and the new Parcera
+implementation, `grape` is tremendously faster: on my machine, searching for `(map $ $ $)` in grape’s own
+source code takes ~2s with the v0.2.0 and ~0.06s with the v0.3.0.
 
 ## 0.2.0 (2019/11/14)
 
