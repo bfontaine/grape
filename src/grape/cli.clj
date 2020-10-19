@@ -63,9 +63,9 @@
 
 (defn- print-match
   [m]
-  ; one more 'dec' so we can (println whitespace s)
+  ; 'dec' so we can (println whitespace s)
   ; instead of (println (str whitespace s))
-  (let [whitespace-count (-> m :meta :start-column dec dec)
+  (let [whitespace-count (-> m :meta :start :column dec)
         whitespace       (apply str (repeat whitespace-count " "))]
     (println whitespace (:match m))))
 
