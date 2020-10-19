@@ -1,5 +1,9 @@
 ## Contributing to `grape`
 
+### Building the jar
+
+    lein do clean, uberjar
+
 ### Building a standalone binary
 
 You need GraalVM for Java 11. See [clj-kondo’s guide][ckg] to install it.
