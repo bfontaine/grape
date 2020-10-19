@@ -3,6 +3,7 @@
 - [x] make it faster with GraalVM
 - [ ] `ack`-like output by default: show line numbers and filenames (if run on multiple files). Add options to change
       that behavior.
+- [ ] Support `-v`/`--version`
 - [ ] Maybe remove `-r`/`--recursive` and always assume it’s recursive
 - [ ] Maybe change `$&` to `$@`, which I find easier to remember
 
