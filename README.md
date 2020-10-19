@@ -7,7 +7,6 @@ patterns using Clojure structures.
 This is experimental for now (see [the roadmap](./ROADMAP.md)).
 
 ## Command-line
-### Usage
 ```
 $ grape [-r|--recursive] <pattern> <file> [<file> ...]
 ```
