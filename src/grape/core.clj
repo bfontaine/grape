@@ -69,7 +69,7 @@
 ;; -------------------
 
 (def ^{:dynamic true
-       :doc "Wildcard symbol used to represent any single expression in a pattern.
+       :doc     "Wildcard symbol used to represent any single expression in a pattern.
 This must be a valid Clojure symbol.
 It is also used as a prefix for typed wildcards. For example, if this is set to
 $ (the default), $string represents any single string expression; $list any
@@ -78,7 +78,7 @@ single list expression; etc."}
   "$")
 
 (def ^{:dynamic true
-       :doc "Wildcard symbol used to represent any number of expressions
+       :doc     "Wildcard symbol used to represent any number of expressions
 in a pattern, including zero. This must be a valid Clojure symbol."}
   *wildcard-expressions*
   "$&")
@@ -110,11 +110,11 @@ in a pattern, including zero. This must be a valid Clojure symbol."}
    any expressions wildcard."
   [trees patterns]
   (if (not= (count trees) (count patterns))
-      false
-      (every? true?
-              (map match?
-                   trees
-                   patterns))))
+    false
+    (every? true?
+            (map match?
+                 trees
+                 patterns))))
 
 (defn- match-seq?
   "Test if a sequence of subtrees match a sequence of patterns."
@@ -139,18 +139,18 @@ in a pattern, including zero. This must be a valid Clojure symbol."}
       (exact-match-seq? trees patterns)
       ;; Otherwise, extract the start and end of the subtrees.
       (let [
-        ;; Take the right number of subtrees at the beginning so they match
-        ;; 'start' patterns.
-        start-trees (take (count start) trees)
-        ;; Do the same with the end subtrees.
-        end-trees (drop (- (count trees) (count end)) trees)]
-      (and
-        (exact-match-seq? start-trees start)
-        (exact-match-seq? end-trees end))))))
+            ;; Take the right number of subtrees at the beginning so they match
+            ;; 'start' patterns.
+            start-trees (take (count start) trees)
+            ;; Do the same with the end subtrees.
+            end-trees   (drop (- (count trees) (count end)) trees)]
+        (and
+          (exact-match-seq? start-trees start)
+          (exact-match-seq? end-trees end))))))
 
 (defn- match-typed-wildcard-expression?
   [node pattern]
-  (let [ntype (name (node-type node))
+  (let [ntype        (name (node-type node))
         pattern-name (str *wildcard-expression* ntype)]
     (= [:symbol pattern-name]
        pattern)))
@@ -219,8 +219,8 @@ in a pattern, including zero. This must be a valid Clojure symbol."}
   (when-let [metadata (meta match)]
     (reduce (fn [m meta-key]
               (assoc m
-                     (keyword (name meta-key))
-                     (get metadata meta-key)))
+                (keyword (name meta-key))
+                (get metadata meta-key)))
             {}
             meta-keys)))
 

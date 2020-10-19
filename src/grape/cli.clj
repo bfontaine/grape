@@ -66,7 +66,7 @@
   ; one more 'dec' so we can (println whitespace s)
   ; instead of (println (str whitespace s))
   (let [whitespace-count (-> m :meta :start-column dec dec)
-        whitespace (apply str (repeat whitespace-count " "))]
+        whitespace       (apply str (repeat whitespace-count " "))]
     (println whitespace (:match m))))
 
 (defn -main
