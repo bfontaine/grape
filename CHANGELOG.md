@@ -1,5 +1,9 @@
 # Grape Changelog
 
+## Unreleased
+
+* Add `-v`/`--version` to the command-line
+
 ## 0.3.0 (2020/10/19)
 
 This release bumps Parsera. It’s now based on Antlr4 rather than Instaparse. This changes a few things:

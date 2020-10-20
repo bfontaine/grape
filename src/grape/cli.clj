@@ -9,7 +9,8 @@
 
 (def cli-options
   [["-h" "--help"]
-   ["-r" "--recursive"]])
+   ["-r" "--recursive"]
+   ["-v" "--version"]])
 
 (defn- usage
   [options-summary]
@@ -20,6 +21,11 @@
      "Options:"
      options-summary
      ""]))
+
+(defn- version
+  "Return the current version."
+  []
+  (slurp (io/resource "GRAPE_VERSION")))
 
 (defn- exit
   [code msg]
@@ -47,6 +53,9 @@
     (cond
       (:help options)
       (exit 0 (usage summary))
+
+      (:version options)
+      (exit 0 (version))
 
       errors
       (exit 1 (str/join \newline errors))
