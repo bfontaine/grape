@@ -8,13 +8,13 @@ This is experimental for now (see [the roadmap](./ROADMAP.md)).
 
 ## Command-line
 ```
-$ grape [-r|--recursive] <pattern> <file> [<file> ...]
+$ grape <pattern> <file> [<file> ...]
 ```
 
 For example, to find all usages of `map` called with a function and two sequences:
 
 ```
-% grape -r '(map $ $ $)' src
+% grape '(map $ $ $)' src
    (map match?
         trees
         patterns)

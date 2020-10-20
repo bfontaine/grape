@@ -2,9 +2,9 @@
 
 - [x] make it faster with GraalVM
 - [ ] `ack`-like output by default: show line numbers and filenames (if run on multiple files). Add options to change
-      that behavior.
+      that behavior (also maybe add an option to change how whitespaces are shown – original vs. not indented vs. inline).
 - [x] Support `-v`/`--version`
-- [ ] Maybe remove `-r`/`--recursive` and always assume it’s recursive
+- [x] Remove `-r`/`--recursive` and always assume it’s recursive
 - [ ] Maybe change `$&` to `$@`, which I find easier to remember
 
 #### Build

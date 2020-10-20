@@ -8,9 +8,8 @@
   (:gen-class))
 
 (def cli-options
-  [["-h" "--help"]
-   ["-r" "--recursive"]
-   ["-v" "--version"]])
+  [["-h" "--help" "Show this help and exit."]
+   ["-v" "--version" "Show the version and exit."]])
 
 (defn- usage
   [options-summary]
@@ -66,9 +65,7 @@
       :else
       (let [[pattern & sources] arguments]
         {:pattern pattern
-         :sources (if (:recursive options)
-                    (mapcat list-clojure-files sources)
-                    sources)}))))
+         :sources (mapcat list-clojure-files sources)}))))
 
 (defn- print-match
   [m]
