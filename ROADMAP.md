@@ -1,13 +1,18 @@
 ## Roadmap to 1.0.0
 
+- [ ] ~~Maybe change `$&` to `$@`, which I find easier to remember~~: not feasible; `$@` is not a valid symbol and is
+      parsed as `$ deref` by Parcera.
+
+### CLI
+
 - [x] make it faster with GraalVM
-- [ ] `ack`-like output by default: show line numbers and filenames (if run on multiple files). Add options to change
-      that behavior (also maybe add an option to change how whitespaces are shown – original vs. not indented vs. inline).
 - [x] Support `-v`/`--version`
 - [x] Remove `-r`/`--recursive` and always assume it’s recursive
-- [ ] Maybe change `$&` to `$@`, which I find easier to remember
+- [ ] `ack`-like output by default: show line numbers and filenames (if run on multiple files). Add options to change
+      that behavior (also maybe add an option to change how whitespaces are shown – original vs. not indented vs. inline).
+- [ ] `-c` or similar to get the count since piping to `wc -l` doesn’t work
 
-#### Build
+### Build
 
 - [ ] automate `lein deploy clojars` with a GitHub workflow
 - [ ] automate the various binaries builds (see how clj-kondo does it, [here][1] and [here][2])
