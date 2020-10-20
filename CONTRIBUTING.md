@@ -1,10 +1,20 @@
 ## Contributing to `grape`
 
-### Building the jar
+### Cutting a version
+
+1. Change the version in [`project.clj`](./project.clj)
+2. Change the version in [`resources/GRAPE_VERSION`](./resources/GRAPE_VERSION)
+3. Update the [`CHANGELOG.md`](./CHANGELOG.md)
+
+#### Deploy to Clojars
+
+    lein deploy
+
+#### Building the jar
 
     lein do clean, uberjar
 
-### Building a standalone binary
+#### Building a standalone binary
 
 You need GraalVM for Java 11. See [clj-kondo’s guide][ckg] to install it.
 
