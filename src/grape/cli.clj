@@ -9,7 +9,8 @@
 
 (def cli-options
   [["-h" "--help" "Show this help and exit."]
-   ["-v" "--version" "Show the version and exit."]])
+   ["-v" "--version" "Show the version and exit."]
+   ["-c" "--count" "Print the number of matches."]])
 
 (defn- usage
   [options-summary]
@@ -65,6 +66,7 @@
       :else
       (let [[pattern & sources] arguments]
         {:pattern pattern
+         :count?  (:count options)
          :sources (mapcat list-clojure-files sources)}))))
 
 (defn- print-match
@@ -77,10 +79,15 @@
 
 (defn -main
   [& args]
-  (let [{:keys [pattern sources]} (parse-args args)
+  (let [{:keys [pattern sources count?]} (parse-args args)
         pattern (g/pattern pattern)]
-    ;; TODO if multiple sources, print them before matches
-    (doseq [source sources]
-      (let [code (slurp (io/file source))]
-        (doseq [m (g/find-codes code pattern)]
-          (print-match m))))))
+    (if count?
+      (println (reduce (fn [n source]
+                         (+ n (g/count-codes (slurp (io/file source)) pattern)))
+                       0
+                       sources))
+      ;; TODO if multiple sources, print them before matches
+      (doseq [source sources]
+        (let [code (slurp (io/file source))]
+          (doseq [m (g/find-codes code pattern)]
+            (print-match m)))))))

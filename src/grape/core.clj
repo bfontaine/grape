@@ -133,8 +133,8 @@ in a pattern, including zero. This must be a valid Clojure symbol."}
   ;; pattern == (:symbol wildcard-name), with wildcard-name = $something
   ;; node == (:something_else ...)
   ;; we're checking if $something-else == $something
-  (let [wildcard-name (node-child pattern)
-        node-type (str/replace (name (node-type node)) #"_" "-")
+  (let [wildcard-name                (node-child pattern)
+        node-type                    (str/replace (name (node-type node)) #"_" "-")
         node-type-as-a-wildcard-name (str *wildcard-expression* node-type)]
     (= wildcard-name
        node-type-as-a-wildcard-name)))
@@ -177,13 +177,24 @@ in a pattern, including zero. This must be a valid Clojure symbol."}
   [tree]
   (with-meta [:code tree] (meta tree)))
 
-(defn find-subtrees
-  "Match a tree given a subtree pattern. Return a lazy sequence of subtrees."
+(defn- find-raw-subtrees
   [tree pattern]
   (->> tree
        (tree-seq tree-node? node-children)
-       (filter #(match? % pattern))
-       (map wrap-code-parent)))
+       (filter #(match? % pattern))))
+
+(defn find-subtrees
+  "Match a tree given a subtree pattern. Return a lazy sequence of subtrees."
+  [tree pattern]
+  (map wrap-code-parent
+       (find-raw-subtrees tree pattern)))
+
+(defn count-subtrees                                                  ;; TODO test me
+  "Equivalent to (count (find-subtrees tree pattern)."
+  [tree pattern]
+  (-> tree
+      (find-raw-subtrees pattern)
+      count))
 
 (defn find-subtree
   "Equivalent of (first (find-subtrees tree pattern))."
@@ -236,6 +247,14 @@ in a pattern, including zero. This must be a valid Clojure symbol."}
          (parse-code code)
          pattern)
        (map subtree->code-match)))
+
+(defn count-codes                                                     ;; TODO test me
+  "Equivalent to (count (find-codes code pattern))."
+  [code pattern]
+  {:pre [(pattern? pattern)]}
+  (count-subtrees
+    (parse-code code)
+    pattern))
 
 (defn find-code
   "Equivalent of (first (find-codes code pattern))."

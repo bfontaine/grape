@@ -3,6 +3,7 @@
 ## Unreleased
 
 * Add `-v`/`--version` to the command-line
+* Add `-c`/`--count` to show the total matches count
 * Remove `-r`/`--recursive`: it’s always recursive now
 
 ## 0.3.0 (2020/10/19)
