@@ -4,7 +4,6 @@
 
 * Add `-v`/`--version` to the command-line
 * Remove `-r`/`--recursive`: it’s always recursive now
-* Replace `$&` with `$@`
 
 ## 0.3.0 (2020/10/19)
 

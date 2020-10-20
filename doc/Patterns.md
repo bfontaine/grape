@@ -17,12 +17,12 @@ Examples:
 * `$` matches literal like `42` but also more complex expressions like `(do (println "foo") (update my-map :foo inc))`.
 * `[$]` matches vectors of one single element.
 
-### `$@`
+### `$&`
 
-`$@` matches any number of expressions, including zero.
+`$&` matches any number of expressions, including zero.
 
-There can be only one `$@` per sequence of expressions (contiguous `$@`s are
-equivalent to one `$@`).
+There can be only one `$&` per sequence of expressions (contiguous `$&`s are
+equivalent to one `$&`).
 
 ### `$type`
 

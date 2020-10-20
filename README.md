@@ -51,7 +51,7 @@ bfontaine/grape {:mvn/version "0.3.0"}
 (g/find-codes my-code (g/pattern "(map $ $ $)"))
 
 ;; Find all occurrences of (condp = ...)
-(g/find-codes my-code (g/pattern "(condp = $@)"))
+(g/find-codes my-code (g/pattern "(condp = $&)"))
 
 ;; Find all occurrences of `if` with no `else` clause
 (g/find-codes my-code (g/pattern "(if $ $)"))
@@ -71,13 +71,13 @@ matching.
 
 ### Wildcards
 * `$`: any expression.
-* `$@`: any number of expressions, including zero. `(f $@)` matches `(f)`,
+* `$&`: any number of expressions, including zero. `(f $&)` matches `(f)`,
   `(f 1)`, `(f 1 2)`, etc.
 * `$string`, `$list`, etc: any expression of the given type.
 
 [See the full patterns documentation](./doc/Patterns.md).
 
-Wildcards can be combined: `#{$ $@}` matches a set with at least one element.
+Wildcards can be combined: `#{$ $&}` matches a set with at least one element.
 
 [parcera]: https://github.com/carocad/parcera#parcera
 
