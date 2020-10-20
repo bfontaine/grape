@@ -127,22 +127,22 @@
     (are [pattern] (= {:match code}
                       (dissoc (g/find-code code (g/pattern pattern)) :meta))
                    "(f 1 2 3)"
-                   "($&)"
-                   "($& $&)"
-                   "(f $&)"
-                   "(f 1 $&)"
-                   "(f 1 2 $&)"
-                   "(f 1 2 3 $&)"
-                   "($& f 1 2 3)"
-                   "($& 1 2 3)"
-                   "(f $& 2 3)"
-                   "(f $& 3)"
-                   "(f 1 $& 2 3)")
+                   "($@)"
+                   "($@ $@)"
+                   "(f $@)"
+                   "(f 1 $@)"
+                   "(f 1 2 $@)"
+                   "(f 1 2 3 $@)"
+                   "($@ f 1 2 3)"
+                   "($@ 1 2 3)"
+                   "(f $@ 2 3)"
+                   "(f $@ 3)"
+                   "(f 1 $@ 2 3)")
 
     (are [pattern] (nil? (g/find-code code (g/pattern pattern)))
-                   "(f $& 1 2 3 $&)"
-                   "($& f $& 1 $& 2 3)"
-                   "($& 1 $& $& $&)")))
+                   "(f $@ 1 2 3 $@)"
+                   "($@ f $@ 1 $@ 2 3)"
+                   "($@ 1 $@ $@ $@)")))
 
 (deftest find-code-typed-expression-wildcard
   (let [code "(defn f \"hey\" [x] (+ x 2))"]
@@ -199,12 +199,12 @@
                       ))
 
 (deftest find-code-mixed-wildcards
-  (let [pattern (g/pattern "#{$ $&}")]
+  (let [pattern (g/pattern "#{$ $@}")]
     (is (nil? (g/find-code "#{}" pattern)))
     (is (some? (g/find-code "#{1}" pattern)))
     (is (some? (g/find-code "#{1 2 3}" pattern))))
 
-  (let [pattern (g/pattern "#{0 $ 2 $&}")]
+  (let [pattern (g/pattern "#{0 $ 2 $@}")]
     (is (nil? (g/find-code "#{0 2 3}" pattern)))
     (is (nil? (g/find-code "#{0 1 3}" pattern)))
     (is (some? (g/find-code "#{0 1 2}" pattern)))))

@@ -60,7 +60,7 @@ single list expression; etc."}
        :doc     "Wildcard symbol used to represent any number of expressions
 in a pattern, including zero. This must be a valid Clojure symbol."}
   *wildcard-expressions*
-  "$&")
+  "$@")
 
 (defn- wildcard-expression?
   [node]

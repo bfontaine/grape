@@ -5,9 +5,9 @@
       that behavior (also maybe add an option to change how whitespaces are shown – original vs. not indented vs. inline).
 - [x] Support `-v`/`--version`
 - [x] Remove `-r`/`--recursive` and always assume it’s recursive
-- [ ] Maybe change `$&` to `$@`, which I find easier to remember
+- [x] Change `$&` to `$@`, which I find easier to remember
 
-#### Build
+### Build
 
 - [ ] automate `lein deploy clojars` with a GitHub workflow
 - [ ] automate the various binaries builds (see how clj-kondo does it, [here][1] and [here][2])
