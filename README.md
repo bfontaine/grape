@@ -4,8 +4,6 @@
 **Grape** is a syntax-aware `grep`-like utility for Clojure code. It allows one to search for code
 patterns using Clojure structures.
 
-This is experimental for now (see [the roadmap](./ROADMAP.md)).
-
 ## Command-line
 ```
 $ grape <pattern> <file> [<file> ...]
