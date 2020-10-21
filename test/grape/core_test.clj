@@ -17,74 +17,87 @@
   (defn g [x] x)")
 
 ;; -------------------
-;; Parsing
-;; -------------------
-
-(deftest parse-pattern-test
-  (testing "leading whitespace and comments"
-    (are [pattern] (= '(:number "42") (g/pattern pattern))
-                   "42"
-                   "    42"
-                   "\n42"
-                   ";; this is my pattern\n42"))
-
-  (testing "discard"
-    (are [pattern] (= '(:number "42") (g/pattern pattern))
-                   "#_ 41 42"
-                   "#_ #_ 1 2 42"
-                   "#_ 1 #_ 2 42 #_ 3"
-                   "#_ (1 2 3) 42"
-                   "#_ ;; discard the next element\n1 42")))
-
-;; -------------------
 ;; Tree matching
 ;; -------------------
 
-(deftest find-subtree-exact-match
-  (testing "same tree"
-    (are [code] (let [t (g/parse-code code)
-                      p (g/pattern code)]
-                  (= t (g/find-subtree t p)))
+(deftest find-subtrees-test
+  (testing "wildcards"
+    (let [$ (g/pattern "$")]
+      (testing "whitespaces don't match"
+        (is (= '((:code (:vector (:whitespace " "))))
+               (g/find-subtrees (g/parse-code "[ ]")
+                                $)))
 
-                simple-defn
-                "(map f a)"
-                "(map f a b)"
-                "(+ 1 2)"))
+        (are [code] (empty? (g/find-subtrees (g/parse-code code)
+                                             $))
+                    "    "
+                    ",,,,"
+                    "#_ nope"
+                    ";; something"
+                    "   \n\t ;; blabla\n; bla\n\n\n  ,")))))
 
-  (let [t (g/parse-code simple-ns)]
-    (testing "top-level tree"
-      (is (= [:code (last t)]
-             (g/find-subtree t (g/pattern "(defn g [x] x)")))))
+(deftest find-subtree-test
+  (testing "exact-match"
+    (testing "same tree"
+      (are [code] (let [t (g/parse-code code)
+                        p (g/pattern code)]
+                    (= t (g/find-subtree t p)))
 
-    (testing "deep match"
-      (are [code] (= (g/parse-code code)
-                     (g/find-subtree t
-                                     (g/pattern code)))
-                  "defn" "f" "[x]"
-                  "(* 2 x)" "2" "x" "*"
-                  "my.ns" "[clojure.string :as str]"))))
+                  simple-defn
+                  "(map f a)"
+                  "(map f a b)"
+                  "(+ 1 2)"))
 
-(deftest find-exact-subtree-no-match
-  (testing "root atoms"
-    (let [codes ["a" "b" "x" "1" "2" "-1" ":foo" ":a/foo" "true" "false" "2.3"
-                 "\"hey I'm a string\"" "\\space"]]
-      (doseq [code1 codes
-              code2 codes]
-        (when (not= code1 code2)
-          (is (nil? (g/find-subtree
-                      (g/parse-code code1)
-                      (g/pattern code2))))))))
+    (let [t (g/parse-code simple-ns)]
+      (testing "top-level tree"
+        (is (= [:code (last t)]
+               (g/find-subtree t (g/pattern "(defn g [x] x)")))))
 
-  (testing "length mismatch"
-    (let [code (g/parse-code "[1 2 3]")]
-      (are [pattern] (nil? (g/find-subtree code (g/pattern pattern)))
-                     "[]"
-                     "[1]"
-                     "[1 2]"
-                     "[123]"
-                     "[12 3]"
-                     "[1 2 3 4]"
-                     "[1 2 3 4 5 6 7]"))))
+      (testing "deep match"
+        (are [code] (= (g/parse-code code)
+                       (g/find-subtree t
+                                       (g/pattern code)))
+                    "defn" "f" "[x]"
+                    "(* 2 x)" "2" "x" "*"
+                    "my.ns" "[clojure.string :as str]"))))
+
+  (testing "no match"
+    (testing "root atoms"
+      (let [codes ["a" "b" "x" "1" "2" "-1" ":foo" ":a/foo" "true" "false" "2.3"
+                   "\"hey I'm a string\"" "\\space"]]
+        (doseq [code1 codes
+                code2 codes]
+          (when (not= code1 code2)
+            (is (nil? (g/find-subtree
+                        (g/parse-code code1)
+                        (g/pattern code2))))))))
+
+    (testing "length mismatch"
+      (let [code (g/parse-code "[1 2 3]")]
+        (are [pattern] (nil? (g/find-subtree code (g/pattern pattern)))
+                       "[]"
+                       "[1]"
+                       "[1 2]"
+                       "[123]"
+                       "[12 3]"
+                       "[1 2 3 4]"
+                       "[1 2 3 4 5 6 7]")))))
+
+(deftest count-subtrees-test
+  (let [code (g/parse-code "(let [a {:a 1} b {:b 2}] {:a a, :b b})")]
+    (are [expected pattern] (= expected (g/count-subtrees code (g/pattern pattern)))
+                            0 "$set"
+                            0 "42"
+                            1 "1"
+                            2 ":a"
+                            2 "$number"
+                            1 "$vector"
+                            1 "(let $ $)"
+                            3 "$map"
+                            4 "$keyword"
+                            5 "$symbol"
+                            ; 5 symbols + 4 keywords + 2 numbers + 3 maps + 1 vector + the whole expression
+                            16 "$")))
 
 ;; -------------------
 ;; Code matching
@@ -199,3 +212,6 @@
     (is (nil? (g/find-code "#{0 2 3}" pattern)))
     (is (nil? (g/find-code "#{0 1 3}" pattern)))
     (is (some? (g/find-code "#{0 1 2}" pattern)))))
+
+(deftest count-codes-test
+  (is (= 5 (g/count-codes "[1 2 3 4]" (g/pattern "$")))))

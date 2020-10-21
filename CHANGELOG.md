@@ -1,6 +1,12 @@
 # Grape Changelog
 
 ## Unreleased
+
+* Fix a bug where `$` was matching whitespaces
+
+### Library
+* Add `grape.core/count-subtrees` and `grape.core/count-codes`
+
 ### CLI
 * Add `-v`/`--version` to the command-line
 * Add `-c`/`--count` to show the total matches count
@@ -8,6 +14,7 @@
 
 ### Internals
 * Extract code from `grape.core` into `grape.impl.models`, `grape.impl.match` and `grape.impl.parsing`
+* Add more tests
 
 ## 0.3.0 (2020/10/19)
 

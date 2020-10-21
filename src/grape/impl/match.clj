@@ -5,11 +5,6 @@
                                        ->typed-wildcard]]
             [grape.impl.parsing :as p]))
 
-(defn- drop-whitespace
-  "Drop whitespaces, comments and discarded forms from a sequence of nodes."
-  [xs]
-  (remove #(#{:whitespace :comment :discard} (node-type %)) xs))
-
 (defn pattern
   [code]
   {:post [(pattern? %)]}
@@ -17,7 +12,6 @@
       str/trim
       p/parse-code
       node-children
-      drop-whitespace
       first))
 
 ;; -------------------
@@ -39,10 +33,7 @@
 (defn- match-seq?
   "Test if a sequence of subtrees match a sequence of patterns."
   [trees patterns]
-  (let [trees    (drop-whitespace trees)
-        patterns (drop-whitespace patterns)
-
-        ;; Assume a pattern sequence have the following format:
+  (let [;; Assume a pattern sequence have the following format:
         ;;   (expression* expressions-wildcard expression*)
         ;; For convenience, we allow multiple expressions-wildcards to occur
         ;; as if they were all one wildcard.

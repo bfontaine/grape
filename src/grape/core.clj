@@ -24,7 +24,7 @@
 (defn- wrap-code-parent
   "Wrap a tree in a :code parent with the same metadata."
   [tree]
-  (with-meta [:code tree] (meta tree)))
+  (with-meta (list :code tree) (meta tree)))
 
 (defn- find-raw-subtrees
   [tree pattern]
@@ -38,7 +38,7 @@
   (map wrap-code-parent
        (find-raw-subtrees tree pattern)))
 
-(defn count-subtrees                                                  ;; TODO test me
+(defn count-subtrees
   "Equivalent to (count (find-subtrees tree pattern)."
   [tree pattern]
   (-> tree

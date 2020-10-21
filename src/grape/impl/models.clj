@@ -12,8 +12,15 @@
 (def pattern? tree-node?)
 
 (def node-type first)
-(def node-children rest)
 (def node-child second)
+
+(defn- remove-whitespaces
+  "Drop whitespaces, comments and discarded forms from a sequence of nodes."
+  [xs]
+  (remove #(#{:whitespace :comment :discard} (node-type %)) xs))
+
+(def node-children (fn [node]
+                     (remove-whitespaces (rest node))))
 
 ;; -------------------
 ;; Wildcards
