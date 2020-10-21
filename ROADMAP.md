@@ -2,6 +2,7 @@
 
 - [ ] ~~Maybe change `$&` to `$@`, which I find easier to remember~~: not feasible; `$@` is not a valid symbol and is
       parsed as `$ deref` by Parcera.
+- [ ] Add unit tests for everything in `grape.cli`
 
 ### CLI
 

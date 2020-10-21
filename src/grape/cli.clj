@@ -3,7 +3,7 @@
             [clojure.java.io :as io]
             [clojure.tools.cli :as cli]
             [grape.core :as g])
-  (:import [java.nio.file FileSystems]
+  (:import [java.nio.file FileSystems Path]
            [java.io File])
   (:gen-class))
 
@@ -33,19 +33,27 @@
     (println msg))
   (System/exit code))
 
+;; TODO test me
 (defn list-clojure-files
   [root]
   ;; https://clojuredocs.org/clojure.core/file-seq#example-59f3948ee4b0a08026c48c79
   (let [clj-matcher (.getPathMatcher (FileSystems/getDefault)
-                                     "glob:*.clj{,s,c,x}")]
-    (->> root
-         io/file
+                                     "glob:*.clj{,s,c,x}")
+        root-file   (io/file root)
+        absolute?   (-> root-file .toPath .isAbsolute)]
+    (->> root-file
          file-seq
          (filter (fn [^File f]
                    (and (.isFile f)
                         (.matches clj-matcher
                                   (.getFileName (.toPath f))))))
-         (map #(.getAbsolutePath ^File %)))))
+         (map (fn [^File f]
+                ;; Return relative (but normalized) paths if the root was given as a relative path; otherwise,
+                ;; return absolute paths.
+                (str (.normalize
+                       ^Path (cond-> (.toPath f)
+                                     absolute?
+                                     (.toAbsolutePath)))))))))
 
 (defn parse-args
   [args]
@@ -64,28 +72,37 @@
       (exit 0 (usage summary))
 
       :else
-      (let [[pattern & sources] arguments]
+      (let [[pattern & paths] arguments]
         {:pattern pattern
          :count?  (:count options)
-         :sources (mapcat list-clojure-files sources)}))))
+         :paths   (mapcat list-clojure-files paths)}))))
 
-(defn- print-match
+(defn- match-string
   [m]
   (let [whitespace-count (-> m :meta :start :column)
         whitespace       (apply str (repeat whitespace-count " "))]
-    (println (str whitespace (:match m)))))
+    (str whitespace (:match m))))
+
+(defn- print-match
+  [m]
+  (println (match-string m)))
+
+(defn- read-path
+  [path]
+  {:path path
+   :code (slurp (io/file path))})
 
 (defn -main
   [& args]
-  (let [{:keys [pattern sources count?]} (parse-args args)
-        pattern (g/pattern pattern)]
+  (let [{:keys [pattern paths count?]} (parse-args args)
+        pattern (g/pattern pattern)
+        sources (map read-path paths)]
     (if count?
       (println (reduce (fn [n source]
-                         (+ n (g/count-codes (slurp (io/file source)) pattern)))
+                         (+ n (g/count-codes (:code source) pattern)))
                        0
                        sources))
       ;; TODO if multiple sources, print them before matches
       (doseq [source sources]
-        (let [code (slurp (io/file source))]
-          (doseq [m (g/find-codes code pattern)]
-            (print-match m)))))))
+        (doseq [m (g/find-codes (:code source) pattern)]
+          (print-match m))))))
