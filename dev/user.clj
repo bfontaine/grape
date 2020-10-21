@@ -4,7 +4,8 @@
             [parcera.core :as parcera]
             [grape.core :as g]
             [grape.cli :as cli]
-            [grape.impl.models :as m]))
+            [grape.impl.models :as m]
+            [grape.impl.match :as match]))
 
 (def s
   (slurp "src/grape/core.clj"))

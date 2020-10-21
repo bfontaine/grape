@@ -7,7 +7,7 @@
 * Remove `-r`/`--recursive`: it’s always recursive now
 
 ### Internals
-* Extract models code from `grape.core` into `grape.impl.models`
+* Extract code from `grape.core` into `grape.impl.models` and `grape.impl.match`
 
 ## 0.3.0 (2020/10/19)
 

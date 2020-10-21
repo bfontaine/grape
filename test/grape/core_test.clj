@@ -40,15 +40,6 @@
 ;; Tree matching
 ;; -------------------
 
-(deftest match?-test
-  (testing "equal to self"
-    (are [x] (#'g/match? x x)
-             [:whitespace " "]
-             [:symbol "foo"]
-             [:keyword "foo"]
-             [:list [:symbol "a"] [:symbol "b"] [:number "42"]]
-             [:discard [:whitespace " "]])))
-
 (deftest find-subtree-exact-match
   (testing "same tree"
     (are [code] (let [t (g/parse-code code)
