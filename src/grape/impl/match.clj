@@ -1,9 +1,9 @@
 (ns grape.impl.match
   (:require [clojure.string :as str]
-            [parcera.core :as parcera]
             [grape.impl.models :refer [tree-leave? tree-node? pattern? node-type node-children node-child
                                        wildcard-expression? wildcard-expressions? typed-wildcard-expression?
-                                       ->typed-wildcard]]))
+                                       ->typed-wildcard]]
+            [grape.impl.parsing :as p]))
 
 (defn- drop-whitespace
   "Drop whitespaces, comments and discarded forms from a sequence of nodes."
@@ -15,7 +15,7 @@
   {:post [(pattern? %)]}
   (-> code
       str/trim
-      parcera/ast
+      p/parse-code
       node-children
       drop-whitespace
       first))

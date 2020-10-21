@@ -5,7 +5,8 @@
             [grape.core :as g]
             [grape.cli :as cli]
             [grape.impl.models :as m]
-            [grape.impl.match :as match]))
+            [grape.impl.match :as match]
+            [grape.impl.parsing :as p]))
 
 (def s
   (slurp "src/grape/core.clj"))

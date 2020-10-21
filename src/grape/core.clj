@@ -1,22 +1,21 @@
 (ns grape.core
-  (:require [parcera.core :as parcera]
-            [grape.impl.models :refer [tree-node? node-children pattern?]]
-            [grape.impl.match :as match :refer [match?]]))
+  (:require [grape.impl.models :refer [tree-node? node-children pattern?]]
+            [grape.impl.match :as m :refer [match?]]
+            [grape.impl.parsing :as p]))
 
 
 ;; -------------------
 ;; Parsing code & patterns
 ;; -------------------
 
-(defn parse-code
-  "Parse code."
-  [code]
-  (parcera/ast code))
+(def ^{:doc "Parse code."}
+  parse-code
+  p/parse-code)
 
 (def ^{:doc "Parse a piece of code as a pattern to be matched. Any expression after the
              first one is discarded as well as comments and discarded forms."}
   pattern
-  match/pattern)
+  m/pattern)
 
 ;; -------------------
 ;; High-level tree functions
@@ -65,7 +64,7 @@
 
 (defn- subtree->code-match
   [match]
-  {:match (parcera/code match)
+  {:match (p/unparse-code match)
    :meta  (match-meta match)})
 
 ;; -------------------
