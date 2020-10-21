@@ -1,20 +1,10 @@
 (ns grape.core
   (:require [clojure.string :as str]
-            [parcera.core :as parcera]))
+            [parcera.core :as parcera]
+            [grape.impl.models :refer [tree-leave? tree-node? pattern? node-type node-children node-child
+                                       wildcard-expression? wildcard-expressions? typed-wildcard-expression?
+                                       ->typed-wildcard]]))
 
-(defn- tree-node?
-  [x]
-  (and (sequential? x)
-       (keyword? (first x))))
-
-(def ^:private tree-leave? string?)
-
-(def ^:private pattern?
-  tree-node?)
-
-(def ^:private node-type first)
-(def ^:private node-children rest)
-(def ^:private node-child second)
 
 ;; -------------------
 ;; Parsing code & patterns
@@ -42,42 +32,6 @@
       drop-whitespace
       first))
 
-
-;; -------------------
-;; Wildcards
-;; -------------------
-
-(def ^{:dynamic true
-       :doc     "Wildcard symbol used to represent any single expression in a pattern.
-This must be a valid Clojure symbol.
-It is also used as a prefix for typed wildcards. For example, if this is set to
-$ (the default), $string represents any single string expression; $list any
-single list expression; etc."}
-  *wildcard-expression*
-  "$")
-
-(def ^{:dynamic true
-       :doc     "Wildcard symbol used to represent any number of expressions
-in a pattern, including zero. This must be a valid Clojure symbol."}
-  *wildcard-expressions*
-  "$&")
-
-(defn- wildcard-expression?
-  [node]
-  (= (list :symbol *wildcard-expression*)
-     node))
-
-(defn- wildcard-expressions?
-  [node]
-  (= (list :symbol *wildcard-expressions*)
-     node))
-
-(defn- typed-wildcard-expression?
-  [node]
-  (and (pattern? node)
-       (= :symbol (node-type node))
-       (str/starts-with? (node-child node) *wildcard-expression*)))
-
 ;; -------------------
 ;; Matching trees
 ;; -------------------
@@ -85,11 +39,10 @@ in a pattern, including zero. This must be a valid Clojure symbol."}
 (declare match?)
 
 (defn- exact-match-seq?
-  "Test if a sequence of subtrees match a sequence of patterns. This ignores
-   any expressions wildcard."
+  "Test if a sequence of subtrees match a sequence of patterns. This ignores any wildcard."
   [trees patterns]
-  (if (not= (count trees) (count patterns))
-    false
+  (and
+    (= (count trees) (count patterns))
     (every? true?
             (map match?
                  trees
@@ -135,7 +88,7 @@ in a pattern, including zero. This must be a valid Clojure symbol."}
   ;; we're checking if $something-else == $something
   (let [wildcard-name                (node-child pattern)
         node-type                    (str/replace (name (node-type node)) #"_" "-")
-        node-type-as-a-wildcard-name (str *wildcard-expression* node-type)]
+        node-type-as-a-wildcard-name (->typed-wildcard node-type)]
     (= wildcard-name
        node-type-as-a-wildcard-name)))
 
