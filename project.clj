@@ -10,12 +10,20 @@
                  [org.antlr/antlr4-runtime "4.7.1"]]
   :main grape.cli
   :repl-options {:init-ns user}
-  :profiles {:uberjar               {:aot         :all
-                                     :global-vars {*assert* false}
-                                     :jvm-opts    ["-Dclojure.compiler.direct-linking=true"
-                                                   "-Dclojure.spec.skip-macros=true"]
-                                     :main        grape.cli}
-             :native-image          {:dependencies [[borkdude/clj-reflector-graal-java11-fix "0.0.1-graalvm-20.2.0"]]}
-             :dev                   {:source-paths ["dev"]
-                                     :global-vars  {*warn-on-reflection* true}
-                                     :dependencies [[org.clojure/tools.namespace "0.2.11"]]}})
+  :deploy-repositories [["snapshots" {:url           "https://repo.clojars.org"
+                                      :username      :env/clojars_username
+                                      :password      :env/clojars_password
+                                      :sign-releases false}]
+                        ["releases" {:url           "https://repo.clojars.org"
+                                     :username      :env/clojars_username
+                                     :password      :env/clojars_password
+                                     :sign-releases false}]]
+  :profiles {:uberjar      {:aot         :all
+                            :global-vars {*assert* false}
+                            :jvm-opts    ["-Dclojure.compiler.direct-linking=true"
+                                          "-Dclojure.spec.skip-macros=true"]
+                            :main        grape.cli}
+             :native-image {:dependencies [[borkdude/clj-reflector-graal-java11-fix "0.0.1-graalvm-20.2.0"]]}
+             :dev          {:source-paths ["dev"]
+                            :global-vars  {*warn-on-reflection* true}
+                            :dependencies [[org.clojure/tools.namespace "0.2.11"]]}})

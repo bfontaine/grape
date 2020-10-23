@@ -16,7 +16,7 @@
 
 ### Build
 
-- [ ] automate `lein deploy clojars` with a GitHub workflow
+- [x] automate `lein deploy clojars` with a GitHub workflow
 - [ ] automate the various binaries builds (see how clj-kondo does it, [here][1] and [here][2]) GraalVM doesn’t support
       [cross-compilation][3]. See [this GitHub action][4]
 

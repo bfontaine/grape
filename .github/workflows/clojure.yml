@@ -6,8 +6,14 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v1
+    - uses: actions/checkout@v2
     - name: Install dependencies
       run: lein -U deps
     - name: Run tests
       run: lein test
+    - name: Deploy
+      if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/devel'
+      run: lein deploy
+      env:
+        CLOJARS_USERNAME: ${{ secrets.CLOJARS_USERNAME }}
+        CLOJARS_PASSWORD: ${{ secrets.CLOJARS_PASSWORD }}
