@@ -33,7 +33,6 @@
     (println msg))
   (System/exit code))
 
-;; TODO test me
 (defn list-clojure-files
   [root]
   ;; https://clojuredocs.org/clojure.core/file-seq#example-59f3948ee4b0a08026c48c79
@@ -57,19 +56,20 @@
 
 (defn parse-args
   [args]
+  {:post [(map? %)]}
   (let [{:keys [options arguments errors summary]} (cli/parse-opts args cli-options)]
     (cond
       (:help options)
-      (exit 0 (usage summary))
+      {:exit-code 0 :exit-text (usage summary)}
 
       (:version options)
-      (exit 0 (version))
+      {:exit-code 0 :exit-text (version)}
 
       errors
-      (exit 1 (str/join \newline errors))
+      {:exit-code 1 :exit-text (str/join \newline errors)}
 
       (empty? arguments)
-      (exit 0 (usage summary))
+      {:exit-code 0 :exit-text (usage summary)}
 
       :else
       (let [[pattern & paths] arguments]
@@ -94,7 +94,9 @@
 
 (defn -main
   [& args]
-  (let [{:keys [pattern paths count?]} (parse-args args)
+  (let [{:keys [pattern paths count? exit-code exit-text]} (parse-args args)
+        _ (when exit-code
+            (exit exit-code exit-text))
         pattern (g/pattern pattern)
         sources (map read-path paths)]
     (if count?
