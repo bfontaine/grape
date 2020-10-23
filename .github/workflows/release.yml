@@ -1,0 +1,57 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'test-[0-9]+\.[0-9]+\.[0-9]+'
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Install dependencies
+        run: lein deps
+      - name: Run tests
+        run: lein test
+      - name: Build uberjar
+        run: lein do clean, uberjar
+      - name: Setup-graalvm-ce
+        uses: rinx/setup-graalvm-ce@v0.0.5
+        with:
+          graalvm-version: "20.2.0"
+          java-version: "java11"
+          native-image: "true"
+      - name: Get the version
+        id: get_version
+        run: echo ::set-output name=VERSION::${GITHUB_REF/refs\/tags\//}
+      - name: Build the Linux binary
+        run: |
+          ./bin/compile.sh
+          zip grape-${{ steps.get_version.outputs.VERSION }}-linux-amd64.zip grape
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: ${{ steps.get_version.outputs.VERSION }}
+          draft: true
+      - name: Upload Linux binary
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: grape-${{ steps.get_version.outputs.VERSION }}-linux-amd64.zip
+          asset_name: grape-${{ steps.get_version.outputs.VERSION }}-linux-amd64.zip
+          asset_content_type: application/zip
+      - name: Upload the uberjar
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: target/grape-${{ steps.get_version.outputs.VERSION }}-standalone.jar
+          asset_name: grape-${{ steps.get_version.outputs.VERSION }}-standalone.jar
+          asset_content_type: application/java-archive
