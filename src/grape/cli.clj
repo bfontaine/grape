@@ -25,7 +25,7 @@
 (defn- version
   "Return the current version."
   []
-  (slurp (io/resource "GRAPE_VERSION")))
+  (str/trim (slurp (io/resource "GRAPE_VERSION"))))
 
 (defn- exit
   [code msg]
