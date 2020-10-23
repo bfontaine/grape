@@ -6,17 +6,22 @@ patterns using Clojure structures.
 
 ## Command-line
 ```
-$ grape <pattern> <file> [<file> ...]
+$ grape [options] <pattern> <file> [<file> ...]
 ```
 
-For example, to find all usages of `map` called with a function and two sequences:
+For example, to find all usages of `map` called with a function and two sequences in `grape`’s own code:
 
 ```
 % grape '(map $ $ $)' src
+src/grape/impl/match.clj:
    (map match?
         trees
         patterns)
 ```
+
+Options:
+* `-F`, `--no-filenames`: by default, `grape` shows the matching filenames when run on multiple files. This option
+  disables that.
 
 ### Install
 Either get the standalone binary (faster) or a jar (slower) from the [Releases page][releases].

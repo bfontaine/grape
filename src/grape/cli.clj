@@ -10,7 +10,8 @@
 (def cli-options
   [["-h" "--help" "Show this help and exit."]
    ["-v" "--version" "Show the version and exit."]
-   ["-c" "--count" "Print the number of matches."]])
+   ["-c" "--count" "Print the number of matches."]
+   ["-F" "--no-filenames" "Don't show the filenames when matching against multiple files."]])
 
 (defn- usage
   [options-summary]
@@ -73,9 +74,10 @@
 
       :else
       (let [[pattern & paths] arguments]
-        {:pattern pattern
-         :count?  (:count options)
-         :paths   (mapcat list-clojure-files paths)}))))
+        {:pattern         pattern
+         :count?          (:count options)
+         :hide-filenames? (:no-filenames options)
+         :paths           (mapcat list-clojure-files paths)}))))
 
 (defn- match-string
   [m]
@@ -92,19 +94,29 @@
   {:path path
    :code (slurp (io/file path))})
 
+(defn- count-matches
+  [sources pattern]
+  (reduce (fn [n source]
+            (+ n (g/count-codes (:code source) pattern)))
+          0
+          sources))
+
 (defn -main
   [& args]
-  (let [{:keys [pattern paths count? exit-code exit-text]} (parse-args args)
-        _ (when exit-code
-            (exit exit-code exit-text))
-        pattern (g/pattern pattern)
-        sources (map read-path paths)]
+  (let [{:keys [exit-code exit-text
+                pattern paths
+                count? hide-filenames?]} (parse-args args)
+        _               (when exit-code
+                          (exit exit-code exit-text))
+        pattern         (g/pattern pattern)
+        sources         (map read-path paths)
+        show-filenames? (and (not hide-filenames?)
+                             (< 1 (count sources)))]
     (if count?
-      (println (reduce (fn [n source]
-                         (+ n (g/count-codes (:code source) pattern)))
-                       0
-                       sources))
-      ;; TODO if multiple sources, print them before matches
+      (println (count-matches sources pattern))
       (doseq [source sources]
-        (doseq [m (g/find-codes (:code source) pattern)]
-          (print-match m))))))
+        (let [matches (g/find-codes (:code source) pattern)]
+          (when (and show-filenames? (seq matches))
+            (println (str (:path source) ":")))
+          (doseq [m (g/find-codes (:code source) pattern)]
+            (print-match m)))))))
