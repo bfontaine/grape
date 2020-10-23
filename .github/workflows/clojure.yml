@@ -3,7 +3,7 @@ name: Clojure CI
 on: [push]
 
 jobs:
-  test+deploy:
+  test_and_deploy:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
