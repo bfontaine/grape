@@ -39,6 +39,46 @@
   ;; Just check the function works; don't test all the logic done in parse-opts.
   (is (= 0 (:exit-code (cli/parse-args ["grape" "--help"])))))
 
+;; TODO test that we preserve commas, #_ and comments when printing matches
+;; Also: preserve newlines: \r\n
+
+(deftest unindent-test
+  (testing "Nothing to unindent"
+    (are [s]
+      (= s (cli/unindent s))
+      ""
+      "\n"
+      "\n\n\n"
+      "foo"
+      "foo\n"
+      "\nfoo"
+      "(println foo)"
+      "(do\n  (println foo))\n"
+      "  (do\n(println foo))\n"))
+
+  (testing "single line"
+    (are [un-indented indented]
+      (= un-indented (cli/unindent indented))
+      "foo" "    foo"
+      "(println foo)" " (println foo)"))
+
+  (testing "multiple lines"
+    (are [un-indented indented]
+      (= un-indented (cli/unindent indented))
+      "(do\n  (println foo))" "  (do\n    (println foo))"
+      "  (do\n(println foo))" "    (do\n  (println foo))"
+      "    (-> a\n   b\n  c\n d\ne)" "     (-> a\n    b\n   c\n  d\n e)"
+      "(defn\n\nf\n\n[]\n\n)" " (defn\n\n f\n\n []\n\n )"))
+
+  (testing "tabs"
+    (is (= "(do\n(foo))" (cli/unindent "\t(do\n\t(foo))")))
+    (is (= "(do\n\t(foo))" (cli/unindent "\t(do\n\t\t(foo))"))))
+
+  (testing "mix of tabs and spaces"
+    (is (= "  (do\n\t(foo))" (cli/unindent "  (do\n\t(foo))")))
+    (is (= "  \t(do\n\t  (foo))" (cli/unindent "  \t(do\n\t  (foo))")))
+    (is (= "(do\n\t(foo))" (cli/unindent "  \t(do\n  \t\t(foo))")))))
+
 (deftest match-source!-test
   (let [printlns "  (println \"a\")\n  (println \"b\")\n  (println \"c\")"
         source   {:code (str "(do\n" printlns ")")
@@ -50,4 +90,9 @@
     (testing "filename"
       (is (= (str "src/abc.clj:\n" printlns "\n")
              (with-out-str
-               (cli/match-source! source (g/pattern "(println $)") {:show-filename? true})))))))
+               (cli/match-source! source (g/pattern "(println $)") {:show-filename? true})))))
+
+    (testing "unindent"
+      (is (= "(println \"a\")\n(println \"b\")\n(println \"c\")\n"
+             (with-out-str
+               (cli/match-source! source (g/pattern "(println $)") {:unindent? true})))))))

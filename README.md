@@ -22,6 +22,7 @@ src/grape/impl/match.clj:
 Options:
 * `-F`, `--no-filenames`: by default, `grape` shows the matching filenames when run on multiple files. This option
   disables that.
+* `-u`, `--unindent`: un-indent matches.
 
 ### Install
 Either get the standalone binary (faster) or a jar (slower) from the [Releases page][releases].

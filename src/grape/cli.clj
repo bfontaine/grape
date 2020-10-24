@@ -11,7 +11,8 @@
   [["-h" "--help" "Show this help and exit."]
    ["-v" "--version" "Show the version and exit."]
    ["-c" "--count" "Print the number of matches."]
-   ["-F" "--no-filenames" "Don't show the filenames when matching against multiple files."]])
+   ["-F" "--no-filenames" "Don't show the filenames when matching against multiple files."]
+   ["-u" "--unindent" "Remove indentation when printing matches."]])
 
 (defn- usage
   [options-summary]
@@ -28,7 +29,7 @@
   []
   (str/trim (slurp (io/resource "GRAPE_VERSION"))))
 
-(defn- exit
+(defn- exit!
   [code msg]
   (binding [*out* *err*]
     (println msg))
@@ -77,17 +78,52 @@
         {:pattern         pattern
          :count?          (:count options)
          :hide-filenames? (:no-filenames options)
+         :unindent?       (:unindent options)
          :paths           (mapcat list-clojure-files paths)}))))
 
+(defn unindent
+  "Unindent a string."
+  [s]
+  ;; Note: str/split-lines doesn't preserve trailing newlines: (count (str/split-lines "a\n")) == 1.
+  (let [lines                 (str/split s #"\n" -1)
+        longest-common-prefix (->> lines
+                                   ; ignore empty lines
+                                   (remove empty?)
+                                   (map #(re-find #"^\s*" %))
+                                   (reduce (fn [prefix line-prefix]
+                                             (cond
+                                               (nil? prefix)
+                                               line-prefix
+
+                                               ; abc and abcdef -> abc
+                                               (str/starts-with? line-prefix prefix)
+                                               prefix
+                                               ; abcdef and abc -> abc
+                                               (str/starts-with? prefix line-prefix)
+                                               line-prefix
+                                               ; abcde and abcef -> abc
+                                               :else
+                                               (->> (map #(when (= %1 %2) %1) prefix line-prefix)
+                                                    (take-while some?)
+                                                    ; avoid an error on str/join if the sequence is empty
+                                                    (cons "")
+                                                    (str/join))))
+                                           nil))
+        common-prefix-size    (count longest-common-prefix)]
+    (->> lines
+         (map (fn [line]
+                (if (empty? line)
+                  line
+                  (subs line common-prefix-size))))
+         (str/join "\n"))))
+
 (defn- match-string
-  [m]
+  [m {:keys [unindent?] :as _options}]
   (let [whitespace-count (-> m :meta :start :column)
         whitespace       (apply str (repeat whitespace-count " "))]
-    (str whitespace (:match m))))
-
-(defn- print-match
-  [m]
-  (println (match-string m)))
+    (cond-> (str whitespace (:match m))
+            unindent?
+            unindent)))
 
 (defn- read-path
   [path]
@@ -102,24 +138,25 @@
           sources))
 
 (defn match-source!
-  [{:keys [code path]} pattern {:keys [show-filename?]}]
+  [{:keys [code path]} pattern {:keys [show-filename?] :as options}]
   (let [matches (g/find-codes code pattern)]
     (when (and show-filename? (seq matches))
       (println (str path ":")))
     (doseq [m (g/find-codes code pattern)]
-      (print-match m))))
+      (println (match-string m options)))))
 
 (defn -main
   [& args]
   (let [{:keys [exit-code exit-text
                 pattern paths
-                count? hide-filenames?]} (parse-args args)
+                count? hide-filenames? unindent?]} (parse-args args)
         _       (when exit-code
-                  (exit exit-code exit-text))
+                  (exit! exit-code exit-text))
         pattern (g/pattern pattern)
         sources (map read-path paths)
         options {:show-filename? (and (not hide-filenames?)
-                                      (< 1 (count sources)))}]
+                                      (< 1 (count sources)))
+                 :unindent?      unindent?}]
     (if count?
       (println (count-matches sources pattern))
       (doseq [source sources]
