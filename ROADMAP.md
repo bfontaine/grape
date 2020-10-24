@@ -15,4 +15,5 @@
       sec/myfile2.clj:102:
         (map f xs)
 
+- [ ] Maybe support reading from stdin
 - [ ] Add unit tests for everything in `grape.cli`

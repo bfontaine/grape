@@ -13,6 +13,9 @@ For example, to find all usages of `map` called with three arguments in `grape`â
 
 ```
 % grape '(map $ $ $)' src
+```
+Output:
+```
 src/grape/impl/match.clj:
    (map match?
         trees
