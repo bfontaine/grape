@@ -1,7 +1,7 @@
 <img align="right" width="150" src="./doc/grapes.png"/>
 
 # Grape
-**Grape** is a syntax-aware `grep`-like utility for Clojure code. It allows one to search for code
+**Grape** is a syntax-aware `grep`-like utility for Clojure code. It allows you to search for code
 patterns using Clojure structures.
 
 ## Command-line
@@ -9,7 +9,7 @@ patterns using Clojure structures.
 $ grape [options] <pattern> <file> [<file> ...]
 ```
 
-For example, to find all usages of `map` called with a function and two sequences in `grape`’s own code:
+For example, to find all usages of `map` called with three arguments in `grape`’s own code:
 
 ```
 % grape '(map $ $ $)' src
@@ -25,10 +25,9 @@ Options:
 * `-u`, `--unindent`: un-indent matches.
 
 ### Install
-Either get the standalone binary (faster) or a jar (slower) from the [Releases page][releases].
+Either get the standalone binary (faster) or a jar from the [Releases page][releases].
 
 [releases]: https://github.com/bfontaine/grape/releases
-
 
 If you have [Homebrew](https://brew.sh), you can install it like so:
 ```bash
