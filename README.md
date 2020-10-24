@@ -12,14 +12,30 @@ $ grape [options] <pattern> <file> [<file> ...]
 For example, to find all usages of `map` called with three arguments in `grape`’s own code:
 
 ```
-% grape '(map $ $ $)' src
+grape '(map $ $ $)' src
 ```
 Output:
 ```
 src/grape/impl/match.clj:
-   (map match?
-        trees
-        patterns)
+            (map match?
+                 trees
+                 patterns)
+src/grape/cli.clj:
+                                                    (map #(when (= %1 %2) %1) prefix line-prefix)
+```
+
+Strip the indentation using `-u`:
+```
+grape -u '(map $ $ $)' src
+```
+Output:
+```
+src/grape/impl/match.clj:
+(map match?
+     trees
+     patterns)
+src/grape/cli.clj:
+(map #(when (= %1 %2) %1) prefix line-prefix)
 ```
 
 Options:
