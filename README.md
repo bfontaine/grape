@@ -43,10 +43,10 @@ brew install bfontaine/utils/grape
 
 ```clojure
 ;; Lein/Boot
-[bfontaine/grape "0.3.0"]
+[bfontaine/grape "0.4.0"]
 
 ;; Deps
-bfontaine/grape {:mvn/version "0.3.0"}
+bfontaine/grape {:mvn/version "0.4.0"}
 ```
 
 
