@@ -1,6 +1,6 @@
 # Grape Changelog
 
-## Unreleased
+## 0.4.0 (2020/10/24)
 
 * Fix a bug where `$` was matching whitespaces
 
@@ -8,8 +8,11 @@
 * Add `grape.core/count-subtrees` and `grape.core/count-codes`
 
 ### CLI
+* Show matching filenames when `grape` is run on multiple files
 * Add `-v`/`--version` to the command-line
 * Add `-c`/`--count` to show the total matches count
+* Add `-F`/`--no-filenames` to hide the matching filenames
+* Add `-u`/`--unindent` to un-indent the matches
 * Remove `-r`/`--recursive`: it’s always recursive now
 
 ### Internals
