@@ -1,7 +1,8 @@
 (ns grape.cli-test
   (:require [clojure.test :refer :all]
             [grape.cli :as cli]
-            [clojure.string :as str])
+            [clojure.string :as str]
+            [grape.core :as g])
   (:import (java.io File)))
 
 (deftest usage-test
@@ -37,3 +38,16 @@
 (deftest parse-args-test
   ;; Just check the function works; don't test all the logic done in parse-opts.
   (is (= 0 (:exit-code (cli/parse-args ["grape" "--help"])))))
+
+(deftest match-source!-test
+  (let [printlns "  (println \"a\")\n  (println \"b\")\n  (println \"c\")"
+        source   {:code (str "(do\n" printlns ")")
+                  :path "src/abc.clj"}]
+    (testing "no filename"
+      (is (= (str printlns "\n")
+             (with-out-str
+               (cli/match-source! source (g/pattern "(println $)") {})))))
+    (testing "filename"
+      (is (= (str "src/abc.clj:\n" printlns "\n")
+             (with-out-str
+               (cli/match-source! source (g/pattern "(println $)") {:show-filename? true})))))))

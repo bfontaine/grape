@@ -101,22 +101,26 @@
           0
           sources))
 
+(defn match-source!
+  [{:keys [code path]} pattern {:keys [show-filename?]}]
+  (let [matches (g/find-codes code pattern)]
+    (when (and show-filename? (seq matches))
+      (println (str path ":")))
+    (doseq [m (g/find-codes code pattern)]
+      (print-match m))))
+
 (defn -main
   [& args]
   (let [{:keys [exit-code exit-text
                 pattern paths
                 count? hide-filenames?]} (parse-args args)
-        _               (when exit-code
-                          (exit exit-code exit-text))
-        pattern         (g/pattern pattern)
-        sources         (map read-path paths)
-        show-filenames? (and (not hide-filenames?)
-                             (< 1 (count sources)))]
+        _       (when exit-code
+                  (exit exit-code exit-text))
+        pattern (g/pattern pattern)
+        sources (map read-path paths)
+        options {:show-filename? (and (not hide-filenames?)
+                                      (< 1 (count sources)))}]
     (if count?
       (println (count-matches sources pattern))
       (doseq [source sources]
-        (let [matches (g/find-codes (:code source) pattern)]
-          (when (and show-filenames? (seq matches))
-            (println (str (:path source) ":")))
-          (doseq [m (g/find-codes (:code source) pattern)]
-            (print-match m)))))))
+        (match-source! source pattern options)))))

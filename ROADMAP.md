@@ -1,7 +1,5 @@
 ## Roadmap to 1.0.0
 
-- [x] Show filenames when run on multiple files
-- [x] Add an option not to show them
 - [ ] Prepend the output with line numbers
 - [ ] Add an option not to show them
 - [ ] Add an option to show only the first line (easier copy/pasting)
