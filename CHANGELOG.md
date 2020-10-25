@@ -1,5 +1,12 @@
 # Grape Changelog
 
+## Unreleased
+### CLI
+* Matches are now prefixed by line numbers
+* Add `-N`/`--no-line-numbers` to hide line numbers
+* Read from `stdin` if no path is given
+* Accept `-` as a special path to read from `stdin`. If `-` is used multiple times, only the first one is effective.
+
 ## 0.4.0 (2020/10/24)
 
 * Fix a bug where `$` was matching whitespaces

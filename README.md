@@ -6,7 +6,7 @@ patterns using Clojure structures.
 
 ## Command-line
 ```
-$ grape [options] <pattern> <file> [<file> ...]
+$ grape [options] <pattern> [<file> ...]
 ```
 
 For example, to find all usages of `map` called with three arguments in `grape`’s own code:
@@ -17,11 +17,11 @@ grape --unindent '(map $ $ $)' src
 Output:
 ```
 src/grape/impl/match.clj:
-(map match?
-     trees
-     patterns)
+29:(map match?
+30:     trees
+31:     patterns)
 src/grape/cli.clj:
-(map #(when (= %1 %2) %1) prefix line-prefix)
+106:(map #(when (= %1 %2) %1) prefix line-prefix)
 ```
 
 Options:
