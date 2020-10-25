@@ -1,7 +1,5 @@
 ## Roadmap to 1.0.0
 
-- [x] Prepend the output with line numbers
-- [x] Add an option not to show them
 - [ ] Add an option to show only the first line (easier copy/pasting)
 - [ ] Maybe add an option to change how whitespaces are shown – original vs. not indented vs. inline.
 - [ ] Maybe add an option to respect the (non-)indentation while showing lines, e.g.:
@@ -15,5 +13,12 @@
       src/myfile2.clj:102:
         (map f xs)
 
-- [x] Maybe support reading from stdin
+- [ ] Maybe add a newline when showing filenames:
+
+      src/myfile.clj:
+        (map inc xs)
+                            <-- here
+      src/myfile2.clj:
+        (map dec xs)
+
 - [ ] Add unit tests for everything in `grape.cli`

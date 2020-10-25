@@ -1,4 +1,4 @@
-<img align="right" width="150" src="./doc/grapes.png"/>
+<img align="right" width="150" alt="grapes." src="./doc/grapes.png"/>
 
 # Grape
 **Grape** is a syntax-aware `grep`-like utility for Clojure code. It allows you to search for code
@@ -25,9 +25,11 @@ src/grape/cli.clj:
 ```
 
 Options:
+* `-c`, `--count`: show the total matches count and exit.
 * `-F`, `--no-filenames`: by default, `grape` shows the matching filenames when run on multiple files. This option
   disables that.
 * `-u`, `--unindent`: un-indent matches.
+* `-N`, `--no-line-numbers`: by default, `grape` prefixes matching lines with their number. This option disables that.
 
 ### Install
 Either get the standalone binary (faster) or a jar from the [Releases page][releases].

@@ -10,7 +10,7 @@
 (def cli-options
   [["-h" "--help" "Show this help and exit."]
    ["-v" "--version" "Show the version and exit."]
-   ["-c" "--count" "Print the number of matches."]
+   ["-c" "--count" "Print the total matches count and exit."]
    ["-F" "--no-filenames" "Don't show the filenames when matching against multiple files."]
    ["-u" "--unindent" "Remove indentation when printing matches."]
    ["-N" "--no-line-numbers" "Don't show line numbers before matches."]])
