@@ -41,13 +41,7 @@ brew install bfontaine/utils/grape
 
 ## Library
 
-```clojure
-;; Lein/Boot
-[bfontaine/grape "0.4.0"]
-
-;; Deps
-bfontaine/grape {:mvn/version "0.4.0"}
-```
+[![Clojars Project](https://img.shields.io/clojars/v/bfontaine/grape.svg)](https://clojars.org/bfontaine/grape)
 
 
 ```clojure
