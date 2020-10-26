@@ -31,7 +31,7 @@ If everything’s fine, it should generate a top-level `grape` standalone binary
 
 To add a standalone binary to the release, zip it using the version and OS/architecture name, e.g.:
 
-    $ zip grape-0.4.0-macos-amd64.zip grape
+    $ zip grape-macos-amd64.zip grape
 
 This reduces the size by ~70%.
 
