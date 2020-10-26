@@ -25,6 +25,7 @@ lein with-profiles +native-image "do" clean, uberjar
     -J-Dclojure.spec.skip-macros=true \
     -J-Dclojure.compiler.direct-linking=true \
     -H:ReflectionConfigurationFiles=reflection.json \
+    -H:IncludeResources=GRAPE_VERSION \
     --initialize-at-run-time=java.lang.Math\$RandomNumberGeneratorHolder \
     --initialize-at-build-time  \
     -H:Log=registerResource: \
