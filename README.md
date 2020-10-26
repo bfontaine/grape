@@ -20,8 +20,10 @@ src/grape/impl/match.clj:
 29:(map match?
 30:     trees
 31:     patterns)
+
 src/grape/cli.clj:
-106:(map #(when (= %1 %2) %1) prefix line-prefix)
+117:(map #(when (= %1 %2) %1) prefix line-prefix)
+
 ```
 
 Options:
@@ -30,6 +32,8 @@ Options:
   disables that.
 * `-u`, `--unindent`: un-indent matches.
 * `-N`, `--no-line-numbers`: by default, `grape` prefixes matching lines with their number. This option disables that.
+
+Run `grape --help` to show all options.
 
 ### Install
 Either get the standalone binary (faster) or a jar from the [Releases page][releases].

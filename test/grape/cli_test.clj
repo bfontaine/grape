@@ -137,7 +137,7 @@
               (#'cli/read-path "-")
               (#'cli/read-path "-"))))))
 
-  (let [path "test/grape/cli_test.clj"
+  (let [path   "test/grape/cli_test.clj"
         source (#'cli/read-path path)]
     (is (= path (:path source)))
     (is (string? (:code source)))))
@@ -167,4 +167,14 @@
       (is (= "2:(println \"a\")\n3:(println \"b\")\n4:(println \"c\")\n"
              (with-out-str
                (cli/match-source! source pattern {:line-numbers? true
-                                                  :unindent?     true})))))))
+                                                  :unindent?     true})))))
+    (testing "trailing newlines"
+      (is (= "  (println \"a\")\n\n  (println \"b\")\n\n  (println \"c\")\n\n"
+             (with-out-str
+               (cli/match-source! source pattern {:trailing-newline? true})))))
+    (testing "line numbers + trailing newlines"
+      (is (= "2:  (println \"a\")\n\n3:  (println \"b\")\n\n4:  (println \"c\")\n\n"
+             (with-out-str
+               (cli/match-source! source pattern {:line-numbers?     true
+                                                  :trailing-newline? true})))))
+    ))

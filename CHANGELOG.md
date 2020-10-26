@@ -2,10 +2,11 @@
 
 ## Unreleased
 ### CLI
-* Matches are now prefixed by line numbers
-* Add `-N`/`--no-line-numbers` to hide line numbers
+* Matches are now prefixed by line numbers, and followed by a newline
 * Read from `stdin` if no path is given
 * Accept `-` as a special path to read from `stdin`. If `-` is used multiple times, only the first one is effective.
+* Add `-N`/`--no-line-numbers` to hide line numbers
+* Add `--no-trailing-newlines` to remove the (new) trailing newline after each match
 * Fix `--version` that was failing with an `IllegalArgumentException` (#1)
 
 ## 0.4.0 (2020/10/24)
