@@ -2,7 +2,7 @@
 
 # Grape
 **Grape** is a syntax-aware `grep`-like utility for Clojure code. It allows you to search for code
-patterns using Clojure structures.
+patterns using Clojure data structures.
 
 ## Command-line
 ```
