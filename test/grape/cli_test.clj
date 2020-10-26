@@ -83,31 +83,37 @@
 (deftest prepend-line-numbers-test
   (testing "one line"
     (are [expected start line]
-      (= [expected] (cli/prepend-line-numbers start [line]))
+      (= [expected] (cli/prepend-line-numbers start nil [line]))
       "1:foo" 1 "foo"
       "10000:42" 10000 42))
 
   (testing "multiple lines"
     (testing "same length"
       (are [expected start lines]
-        (= expected (cli/prepend-line-numbers start lines))
+        (= expected (cli/prepend-line-numbers start nil lines))
         ["1:a" "2:b" "3:c"] 1 ["a" "b" "c"]
         ["200:a" "201:b" "202:c"] 200 ["a" "b" "c"])
 
       (testing "empty lines"
-        (is (= ["1:a" "2:" "3:c"] (cli/prepend-line-numbers 1 ["a" "" "c"])))))
+        (is (= ["1:a" "2:" "3:c"] (cli/prepend-line-numbers 1 nil ["a" "" "c"])))))
 
     (testing "different lengths"
       (are [expected start lines]
-        (= expected (cli/prepend-line-numbers start lines))
+        (= expected (cli/prepend-line-numbers start nil lines))
         [" 9:a" "10:b" "11:c"] 9 ["a" "b" "c"]
         [" 8:a" " 9:b" "10:c"] 8 ["a" "b" "c"]
         [" 997:a" " 998:b" " 999:c" "1000:d"] 997 ["a" "b" "c" "d"])
-      (let [prefixed (cli/prepend-line-numbers 1 (map str (range 1 1001)))]
+      (let [prefixed (cli/prepend-line-numbers 1 nil (map str (range 1 1001)))]
         (is (= "   1:1" (first prefixed)))
         (is (= "  42:42" (nth prefixed 41)))
         (is (= " 100:100" (nth prefixed 99)))
-        (is (= "1000:1000" (last prefixed)))))))
+        (is (= "1000:1000" (last prefixed)))))
+
+    (testing "first-line-number"
+      (are [expected start lines]
+        (= expected (cli/prepend-line-numbers start {:first-line-number? true} lines))
+        ["9:a" "  b" "  c"] 9 ["a" "b" "c"]
+        ["1000:a" "     b" "     c"] 1000 ["a" "b" "c"]))))
 
 (deftest split-lines-test
   (are [expected s]
@@ -177,4 +183,31 @@
              (with-out-str
                (cli/match-source! source pattern {:line-numbers?     true
                                                   :trailing-newline? true})))))
+
+    (testing "first line number"
+      (testing "with single-line matches"
+        (let [expected "2:  (println \"a\")\n3:  (println \"b\")\n4:  (println \"c\")\n"]
+          (testing "without :line-numbers?"
+            (is (= expected
+                   (with-out-str
+                     (cli/match-source! source pattern {:first-line-number? true})))))
+
+          (testing "with :line-numbers?"
+            (is (= expected
+                   (with-out-str
+                     (cli/match-source! source pattern {:first-line-number? true
+                                                        :line-numbers?      true})))))))
+
+      (testing "with multi-line matches"
+        (is (= "1:(do\n    (println \"a\")\n    (println \"b\")\n    (println \"c\"))\n"
+               (with-out-str
+                 (cli/match-source! source (g/pattern "(do $&)") {:first-line-number? true}))))
+        (testing "with unindent"
+          (is (= "1:(map\n  f\n  xs)\n"
+                 (with-out-str
+                   (cli/match-source!
+                     (assoc source :code "  (map\n  f\n  xs)\n")
+                     (g/pattern "(map $&)")
+                     {:first-line-number? true
+                      :unindent?          true})))))))
     ))
