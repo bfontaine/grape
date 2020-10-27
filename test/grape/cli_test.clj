@@ -226,11 +226,9 @@
         (testing "with line numbers"
           (is (= (str "1:" inline)
                  (with-out-str
-                   (cli/match-source! source (g/pattern "(do $&)") {:line-numbers :first}))))
+                   (cli/match-source! source (g/pattern "(do $&)") {:inline?      true
+                                                                    :line-numbers :first}))))
           (is (= (str "1:" inline)
                  (with-out-str
-                   (cli/match-source! source (g/pattern "(do $&)") {:line-numbers :all})))))))))
-
-
-;; TODO test that we preserve commas, #_ and comments when printing matches
-;; Also: preserve newlines: \r\n
+                   (cli/match-source! source (g/pattern "(do $&)") {:inline?      true
+                                                                    :line-numbers :all})))))))))
