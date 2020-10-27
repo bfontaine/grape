@@ -75,6 +75,10 @@
         '(:code (:vector (:whitespace " ") (:symbol "a") (:whitespace " ") (:symbol "b") (:whitespace "  ")))
         '(:code (:whitespace "  ") (:vector (:whitespace " ") (:symbol "a") (:whitespace " ") (:symbol "b"))))))
 
+  (testing "whitespaces in strings"
+    (let [code '(:code (:string " a \n "))]
+      (is (= code (m/compact-whitespaces code)))))
+
   (testing "parse/unparse tests"
     (are [expected code]
       (= expected (p/unparse-code (m/compact-whitespaces (p/parse-code code))))
