@@ -1,4 +1,4 @@
-(defproject bfontaine/grape "0.5.1-SNAPSHOT"
+(defproject bfontaine/grape "0.5.1"
   :description "Syntax-aware Grep-like for Clojure code"
   :url "https://github.com/bfontaine/grape"
   :license {:name "EPL-2.0 OR GPL-2.0-or-later WITH Classpath-exception-2.0"
