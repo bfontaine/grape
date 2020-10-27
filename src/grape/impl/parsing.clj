@@ -1,7 +1,6 @@
 (ns grape.impl.parsing
   "Internal parsing utilities."
   (:require [parcera.core :as parcera]
-            [clojure.walk :refer [postwalk]]
             [grape.impl.models :as m]))
 
 (defn parse-code

@@ -150,12 +150,12 @@
       (is (= [{:path "(stdin)"
                :code "foo"}
               {:path "(stdin)"
-               :code ""}])
-          (with-in-str
-            "foo"
-            (vector
-              (#'cli/read-path "-")
-              (#'cli/read-path "-"))))))
+               :code ""}]
+             (with-in-str
+               "foo"
+               (vector
+                 (#'cli/read-path "-")
+                 (#'cli/read-path "-")))))))
 
   (let [path   "test/grape/cli_test.clj"
         source (#'cli/read-path path)]

@@ -25,5 +25,7 @@
                             :main        grape.cli}
              :native-image {:dependencies [[borkdude/clj-reflector-graal-java11-fix "0.0.1-graalvm-20.2.0"]]}
              :dev          {:source-paths ["dev"]
+                            :aliases      {"clj-kondo" ["run" "-m" "clj-kondo.main" "--lint" "src" "test"]}
                             :global-vars  {*warn-on-reflection* true}
-                            :dependencies [[org.clojure/tools.namespace "0.2.11"]]}})
+                            :dependencies [[org.clojure/tools.namespace "0.2.11"]
+                                           [clj-kondo "2020.10.10"]]}})

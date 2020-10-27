@@ -1,6 +1,6 @@
 (ns grape.impl.match
   (:require [clojure.string :as str]
-            [grape.impl.models :refer [tree-leave? tree-node? pattern? node-type node-children node-child
+            [grape.impl.models :refer [tree-leave? pattern? node-type node-children node-child
                                        wildcard-expression? wildcard-expressions? typed-wildcard-expression?
                                        ->typed-wildcard]]
             [grape.impl.parsing :as p]))
