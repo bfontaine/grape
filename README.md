@@ -50,7 +50,6 @@ brew install bfontaine/utils/grape
 ```
 
 ## Library
-
 [![Clojars Project](https://img.shields.io/clojars/v/bfontaine/grape.svg)](https://clojars.org/bfontaine/grape)
 
 
@@ -87,7 +86,7 @@ matching.
   `(f 1)`, `(f 1 2)`, etc.
 * `$string`, `$list`, etc: any expression of the given type.
 
-[See the full patterns documentation](./doc/Patterns.md).
+[See the full patterns documentation](./doc/Patterns.md). [See more examples](./doc/Examples.md).
 
 Wildcards can be combined: `#{$ $&}` matches a set with at least one element.
 

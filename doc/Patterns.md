@@ -6,7 +6,8 @@ They are matched recursively: `[$]` matches `[[1]]` twice; once on `[[1]]` and o
 
 ## Literals
 
-literals are matched, well, literally. Like in a regular expression, they match their own representation.
+literals are matched, well, literally. Like in a regular expression, they match their own representation:
+the pattern `42` matches the code `42`.
 
 ## Wildcards
 ### `$`
