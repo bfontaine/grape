@@ -63,8 +63,8 @@
             [:parcera.core/start :parcera.core/end])))
 
 (defn- subtree->code-match
-  [match]
-  {:match (p/unparse-code match)
+  [match options]
+  {:match (p/unparse-code match options)
    :meta  (match-meta match)})
 
 ;; -------------------
@@ -83,21 +83,26 @@
 ;; Instead of:
 ;;   "  (+ a
 ;;   |     a)"
-;; This can be fixed by the caller using :start-colum in :meta.
+;; This can be fixed by the caller using :start :column in :meta.
 (defn find-codes
   "Find pieces of `code` based on `pattern`. Return a lazy sequence of matchs
    where each one is a map of :match and :meta, respectively the matching code
    and its location metadata.
 
-   `pattern` must have been constructed using grape.core/pattern."
-  [code pattern]
-  {:pre [(pattern? pattern)]}
-  (->> (find-subtrees
-         (parse-code code)
-         pattern)
-       (map subtree->code-match)))
+   `pattern` must have been constructed using grape.core/pattern.
 
-(defn count-codes                                                     ;; TODO test me
+   `options` are passed downstream. The only supported one for now is :inline,
+   which transform matches "
+  ([code pattern]
+   (find-codes code pattern nil))
+  ([code pattern options]
+   {:pre [(pattern? pattern)]}
+   (->> (find-subtrees
+          (parse-code code)
+          pattern)
+        (map #(subtree->code-match % options)))))
+
+(defn count-codes
   "Equivalent to (count (find-codes code pattern))."
   [code pattern]
   {:pre [(pattern? pattern)]}

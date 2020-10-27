@@ -35,6 +35,7 @@ Options:
   is prefixed by its line number. `all` shows all line numbers; `none` remove them.
 * `-n`, `--all-line-numbers`: alias for `--line-numbers all`
 * `-N`, `--no-line-numbers`: alias for `--line-numbers none`
+* `--inline`: force matches on one line
 
 Run `grape --help` to show all options.
 

@@ -1,6 +1,7 @@
 (ns grape.impl.models-test
   (:require [clojure.test :refer :all]
-            [grape.impl.models :as m]))
+            [grape.impl.models :as m]
+            [grape.impl.parsing :as p]))
 
 (deftest tree-node?-test
   (are [x] (m/tree-node? x)
@@ -62,3 +63,25 @@
   (binding [m/*wildcard-expression* "*"]
     (is (= "*list"
            (m/->typed-wildcard "list")))))
+
+(deftest compact-whitespaces-test
+  (testing "leading/trailing whitespaces"
+    (let [compact '(:code (:vector (:symbol "a") (:whitespace " ") (:symbol "b")))]
+      (are [original]
+        (= compact (m/compact-whitespaces original))
+        compact
+        '(:code (:vector (:symbol "a") (:whitespace " ") (:symbol "b") (:whitespace " ")))
+        '(:code (:vector (:whitespace " ") (:symbol "a") (:whitespace " ") (:symbol "b")))
+        '(:code (:vector (:whitespace " ") (:symbol "a") (:whitespace " ") (:symbol "b") (:whitespace "  ")))
+        '(:code (:whitespace "  ") (:vector (:whitespace " ") (:symbol "a") (:whitespace " ") (:symbol "b"))))))
+
+  (testing "parse/unparse tests"
+    (are [expected code]
+      (= expected (p/unparse-code (m/compact-whitespaces (p/parse-code code))))
+      "foo" " foo "
+      "hey" "hey\n"
+      "various" "  various\r\t \n"
+      "[a b c]" "[a b c] "
+      "#_foo bar" "#_ foo\nbar"
+      "[a b]" "[a                 b ]"
+      "a b c" "a b c")))

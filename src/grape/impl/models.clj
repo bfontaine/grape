@@ -1,6 +1,7 @@
 (ns grape.impl.models
   "Internal models."
-  (:require [clojure.string :as str]))
+  (:require [clojure.string :as str]
+            [clojure.walk :refer [postwalk]]))
 
 (defn tree-node?
   [x]
@@ -13,14 +14,64 @@
 
 (def node-type first)
 (def node-child second)
+(def ^:private raw-node-children rest)
+
+;; -------------------
+;; Transformations
+;; -------------------
 
 (defn- remove-whitespaces
   "Drop whitespaces, comments and discarded forms from a sequence of nodes."
   [xs]
   (remove #(#{:whitespace :comment :discard} (node-type %)) xs))
 
-(def node-children (fn [node]
-                     (remove-whitespaces (rest node))))
+(defn- remove-whitespace*
+  "Remove a specific node from a tree if it's a whitespace. get-fn takes the tree's children and return the node.
+   remove-fn takes the children and return them without that node."
+  [tree get-fn remove-fn]
+  (let [children (raw-node-children tree)
+        node     (get-fn children)]
+    (if (= :whitespace (node-type node))
+      (cons (first tree) (remove-fn children))
+      tree)))
+
+(defn- remove-trailing-whitespace
+  "Remove the trailing whitespace node of a tree, if any."
+  [tree]
+  (remove-whitespace* tree last butlast))
+
+(defn- remove-leading-whitespace
+  "Remove the leading whitespace node of a tree, if any."
+  [tree]
+  (remove-whitespace* tree first rest))
+
+(defn compact-whitespaces
+  "Transform a tree by 'compacting' its whitespaces: all newlines and sequences of whitespaces are replaced
+   by a single whitespace. Comments are removed as well."
+  [tree]
+  (->> tree
+       (postwalk
+         (fn [node]
+           (if (tree-node? node)
+             (case (node-type node)
+               :comment nil
+               :whitespace (let [s (node-child node)]
+                             (if (or (= \newline (first s))
+                                     (< 1 (count s)))
+                               '(:whitespace " ")
+                               node))
+               (->> node
+                    (remove nil?)
+                    remove-leading-whitespace
+                    remove-trailing-whitespace))
+             node)))
+       remove-leading-whitespace
+       remove-trailing-whitespace))
+
+(defn node-children
+  "Return non-whitespace node children."
+  [node]
+  (remove-whitespaces (rest node)))
 
 ;; -------------------
 ;; Wildcards

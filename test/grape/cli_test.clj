@@ -216,7 +216,20 @@
                      (g/pattern "(map $&)")
                      {:line-numbers :first
                       :unindent?    true})))))))
-    ))
+
+    (testing "inline"
+      (let [inline "(do (println \"a\") (println \"b\") (println \"c\"))\n"]
+        (is (= inline
+               (with-out-str
+                 (cli/match-source! source (g/pattern "(do $&)") {:inline? true}))))
+
+        (testing "with line numbers"
+          (is (= (str "1:" inline)
+                 (with-out-str
+                   (cli/match-source! source (g/pattern "(do $&)") {:line-numbers :first}))))
+          (is (= (str "1:" inline)
+                 (with-out-str
+                   (cli/match-source! source (g/pattern "(do $&)") {:line-numbers :all})))))))))
 
 
 ;; TODO test that we preserve commas, #_ and comments when printing matches

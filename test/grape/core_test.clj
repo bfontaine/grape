@@ -103,115 +103,123 @@
 ;; Code matching
 ;; -------------------
 
-(deftest find-codes-exact-match
-  (let [code "(def a 1)"]
-    (is (= [{:match code
-             :meta  {:start {:row 1 :column 0}
-                     :end   {:row 1 :column 9}}}]
-           (g/find-codes code (g/pattern code))))))
+(deftest find-codes-test
+  (testing "exact match"
+    (let [code "(def a 1)"]
+      (is (= [{:match code
+               :meta  {:start {:row 1 :column 0}
+                       :end   {:row 1 :column 9}}}]
+             (g/find-codes code (g/pattern code)))))))
 
-(deftest find-code-ignoring-whitespace
-  (let [pattern "(def f [x y] 42)"]
-    (are [code] (= {:match code}
-                   (dissoc (g/find-code code (g/pattern pattern)) :meta))
+(deftest find-code-test
+  (testing "whitespace"
+    (are [code]
+      (= {:match code}
+         (dissoc (g/find-code code (g/pattern "(def f [x y] 42)")) :meta))
 
-                "( \t\t  def\n \t  f   [  x \n\n y  ] 42   )"
-                "(def f [x y] 42\n   )"
-                "(def f\n  [x y]\n  42)"
-                )))
+      "( \t\t  def\n \t  f   [  x \n\n y  ] 42   )"
+      "(def f [x y] 42\n   )"
+      "(def f\n  [x y]\n  42)"))
 
-(deftest find-code-expression-wildcard
-  (is (some? (g/find-code "(defn f [] 42)" (g/pattern "$"))))
-  (is (some? (g/find-code "(let [a (range 3)]
+  (testing "comments"
+    (are [code]
+      (= {:match code}
+         (dissoc (g/find-code code (g/pattern "(map inc xs)")) :meta))
+
+      "(map\n  ;; this is a function\n  inc\n  ;; this is\n  ;; a collection\n  xs)"))
+
+  (testing "expression wildcard"
+    (is (some? (g/find-code "(defn f [] 42)" (g/pattern "$"))))
+    (is (some? (g/find-code "(let [a (range 3)]
                              (map * a a))"
-                          (g/pattern "(map $ $ $)")))))
+                            (g/pattern "(map $ $ $)")))))
 
-(deftest find-code-expressions-wildcard
-  (let [code "(f 1 2 3)"]
-    (are [pattern] (= {:match code}
-                      (dissoc (g/find-code code (g/pattern pattern)) :meta))
-                   "(f 1 2 3)"
-                   "($&)"
-                   "($& $&)"
-                   "(f $&)"
-                   "(f 1 $&)"
-                   "(f 1 2 $&)"
-                   "(f 1 2 3 $&)"
-                   "($& f 1 2 3)"
-                   "($& 1 2 3)"
-                   "(f $& 2 3)"
-                   "(f $& 3)"
-                   "(f 1 $& 2 3)")
+  (testing "expressions wildcard"
+    (let [code "(f 1 2 3)"]
+      (are [pattern] (= {:match code}
+                        (dissoc (g/find-code code (g/pattern pattern)) :meta))
+                     "(f 1 2 3)"
+                     "($&)"
+                     "($& $&)"
+                     "(f $&)"
+                     "(f 1 $&)"
+                     "(f 1 2 $&)"
+                     "(f 1 2 3 $&)"
+                     "($& f 1 2 3)"
+                     "($& 1 2 3)"
+                     "(f $& 2 3)"
+                     "(f $& 3)"
+                     "(f 1 $& 2 3)")
 
-    (are [pattern] (nil? (g/find-code code (g/pattern pattern)))
-                   "(f $& 1 2 3 $&)"
-                   "($& f $& 1 $& 2 3)"
-                   "($& 1 $& $& $&)")))
+      (are [pattern] (nil? (g/find-code code (g/pattern pattern)))
+                     "(f $& 1 2 3 $&)"
+                     "($& f $& 1 $& 2 3)"
+                     "($& 1 $& $& $&)")))
 
-(deftest find-code-typed-expression-wildcard
-  (let [code "(defn f \"hey\" [x] (+ x 2))"]
-    (are [pattern] (= {:match code}
-                      (dissoc (g/find-code code (g/pattern pattern)) :meta))
-                   "(defn f $string [x] (+ x 2))"
-                   "($symbol $symbol $string $vector $list)"
-                   "(defn $symbol \"hey\" [x] ($symbol x 2))"
-                   )))
+  (testing "typed-expression wildcard"
+    (let [code "(defn f \"hey\" [x] (+ x 2))"]
+      (are [pattern] (= {:match code}
+                        (dissoc (g/find-code code (g/pattern pattern)) :meta))
+                     "(defn f $string [x] (+ x 2))"
+                     "($symbol $symbol $string $vector $list)"
+                     "(defn $symbol \"hey\" [x] ($symbol x 2))"
+                     )))
 
-(deftest find-code-typed-expression-wildcard-mismatch
-  (let [code "(defn f \"hey\" [x] (+ x 2))"]
-    (are [pattern] (nil? (g/find-code code (g/pattern pattern)))
-                   "(defn f $string $list (+ x 2))"
-                   "($symbol $string $symbol $vector $list)"
-                   "(defn $symbol \"hy\" [x] ($symbol x 2))")))
+  (testing "typed-expression wildcard mismatch"
+    (let [code "(defn f \"hey\" [x] (+ x 2))"]
+      (are [pattern] (nil? (g/find-code code (g/pattern pattern)))
+                     "(defn f $string $list (+ x 2))"
+                     "($symbol $string $symbol $vector $list)"
+                     "(defn $symbol \"hy\" [x] ($symbol x 2))")))
 
-(deftest find-code-typed-expression-all-wildcards
-  (are [pattern code] (= {:match code}
-                         (dissoc (g/find-code code (g/pattern pattern)) :meta))
-                      ;; https://github.com/carocad/parcera/blob/d6b28b1058ef2af447a9452f96c7b6053e59f613/src/parcera/core.cljc#L26
-                      "$symbol" "foo"
-                      "$symbol" "foo/bar"
-                      "$symbol" "clojure.string/foo"
-                      "$string" "\"foo\""
-                      "$keyword" ":foo"
-                      "$macro-keyword" "::foo"
-                      "$regex" "#\"foo\""
-                      "$symbolic" "##Inf"
-                      "$number" "42"
-                      "$number" "3.14"
-                      "$character" "\\a"
-                      "$character" "\\space"
+  (testing "all typed-expression wildcards"
+    (are [pattern code] (= {:match code}
+                           (dissoc (g/find-code code (g/pattern pattern)) :meta))
+                        ;; https://github.com/carocad/parcera/blob/d6b28b1058ef2af447a9452f96c7b6053e59f613/src/parcera/core.cljc#L26
+                        "$symbol" "foo"
+                        "$symbol" "foo/bar"
+                        "$symbol" "clojure.string/foo"
+                        "$string" "\"foo\""
+                        "$keyword" ":foo"
+                        "$macro-keyword" "::foo"
+                        "$regex" "#\"foo\""
+                        "$symbolic" "##Inf"
+                        "$number" "42"
+                        "$number" "3.14"
+                        "$character" "\\a"
+                        "$character" "\\space"
 
-                      "$deref" "@foo"
-                      "$quote" "'foo"
-                      "$unquote" "~foo"
-                      "$unquote-splicing" "~@foo"
-                      "$backtick" "`foo"
-                      "$var-quote" "#'foo"
+                        "$deref" "@foo"
+                        "$quote" "'foo"
+                        "$unquote" "~foo"
+                        "$unquote-splicing" "~@foo"
+                        "$backtick" "`foo"
+                        "$var-quote" "#'foo"
 
-                      "$conditional" "#?(:cljs nil)"
-                      "$conditional-splicing" "#?@(:cljs nil)"
+                        "$conditional" "#?(:cljs nil)"
+                        "$conditional-splicing" "#?@(:cljs nil)"
 
-                      "$metadata" "^:foo yo"
+                        "$metadata" "^:foo yo"
 
-                      "$fn" "#(do %)"
+                        "$fn" "#(do %)"
 
-                      "$list" "(f 2 3)"
-                      "$vector" "[]"
+                        "$list" "(f 2 3)"
+                        "$vector" "[]"
 
-                      "$map" "{}"
-                      "$set" "#{}"
-                      ))
+                        "$map" "{}"
+                        "$set" "#{}"
+                        ))
 
-(deftest find-code-mixed-wildcards
-  (let [pattern (g/pattern "#{$ $&}")]
-    (is (nil? (g/find-code "#{}" pattern)))
-    (is (some? (g/find-code "#{1}" pattern)))
-    (is (some? (g/find-code "#{1 2 3}" pattern))))
+  (testing "mixed wildcards"
+    (let [pattern (g/pattern "#{$ $&}")]
+      (is (nil? (g/find-code "#{}" pattern)))
+      (is (some? (g/find-code "#{1}" pattern)))
+      (is (some? (g/find-code "#{1 2 3}" pattern))))
 
-  (let [pattern (g/pattern "#{0 $ 2 $&}")]
-    (is (nil? (g/find-code "#{0 2 3}" pattern)))
-    (is (nil? (g/find-code "#{0 1 3}" pattern)))
-    (is (some? (g/find-code "#{0 1 2}" pattern)))))
+    (let [pattern (g/pattern "#{0 $ 2 $&}")]
+      (is (nil? (g/find-code "#{0 2 3}" pattern)))
+      (is (nil? (g/find-code "#{0 1 3}" pattern)))
+      (is (some? (g/find-code "#{0 1 2}" pattern))))))
 
 (deftest count-codes-test
   (is (= 5 (g/count-codes "[1 2 3 4]" (g/pattern "$")))))
