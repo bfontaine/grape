@@ -17,6 +17,7 @@ Development happens on the `devel` branch.
    release
 8. On `devel`, bump the version to the next snapshot
 9. Commit and push
+10. Bump the version in the [Homebrew tap](https://github.com/bfontaine/homebrew-utils/blob/master/Formula/grape.rb)
 
 ### Building the standalone jar
 
@@ -26,7 +27,7 @@ Development happens on the `devel` branch.
 
 You need GraalVM for Java 11. See [clj-kondo’s guide][ckg] to install it.
 
-[Build the standalone jar](#building-the-standalone-jar), then run `bin/compile.sh`.
+[Build the standalone jar](#building-the-standalone-jar), then run `./bin/compile.sh`.
 If everything’s fine, it should generate a top-level `grape` standalone binary.
 
 To add a standalone binary to the release, zip it using the version and OS/architecture name, e.g.:
