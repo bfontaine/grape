@@ -91,8 +91,8 @@
 
    `pattern` must have been constructed using grape.core/pattern.
 
-   `options` are passed downstream. The only supported one for now is :inline,
-   which transform matches "
+   `options` are passed downstream. The only supported one for now is :inline?,
+   which forces matches on a single line."
   ([code pattern]
    (find-codes code pattern nil))
   ([code pattern options]
