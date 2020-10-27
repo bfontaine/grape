@@ -37,10 +37,24 @@
 
 (deftest parse-args-test
   ;; Just check the function works; don't test all the logic done in parse-opts.
-  (is (= 0 (:exit-code (cli/parse-args ["grape" "--help"])))))
-
-;; TODO test that we preserve commas, #_ and comments when printing matches
-;; Also: preserve newlines: \r\n
+  (is (= 0 (:exit-code (cli/parse-args ["grape" "--help"]))))
+  (testing "--line-numbers and aliases"
+    (are [expected args]
+      (= {:line-numbers expected} (select-keys (cli/parse-args (into ["grape"] args)) [:line-numbers :exit-text]))
+      :first []
+      :first ["--line-numbers" "first"]
+      :all ["--line-numbers" "all"]
+      ;; Aliases
+      :none ["--line-numbers" "none"]
+      :all ["--all-line-numbers"]
+      :all ["-n"]
+      :none ["-N"]
+      ;; Mix of aliases
+      :none ["--all-line-numbers" "--no-line-numbers"]
+      ;; Mix of --line-numbers with aliases
+      :first ["--line-numbers" "first" "--all-line-numbers"]
+      :first ["--line-numbers" "first" "--no-line-numbers"]
+      :first ["--line-numbers" "first" "--all-line-numbers" "--no-line-numbers"])))
 
 (deftest unindent-lines-test
   (letfn [(unindent [s] (cli/join-lines (cli/unindent-lines (cli/split-lines s))))]
@@ -83,27 +97,27 @@
 (deftest prepend-line-numbers-test
   (testing "one line"
     (are [expected start line]
-      (= [expected] (cli/prepend-line-numbers start nil [line]))
+      (= [expected] (cli/prepend-line-numbers start :all [line]))
       "1:foo" 1 "foo"
       "10000:42" 10000 42))
 
   (testing "multiple lines"
     (testing "same length"
       (are [expected start lines]
-        (= expected (cli/prepend-line-numbers start nil lines))
+        (= expected (cli/prepend-line-numbers start :all lines))
         ["1:a" "2:b" "3:c"] 1 ["a" "b" "c"]
         ["200:a" "201:b" "202:c"] 200 ["a" "b" "c"])
 
       (testing "empty lines"
-        (is (= ["1:a" "2:" "3:c"] (cli/prepend-line-numbers 1 nil ["a" "" "c"])))))
+        (is (= ["1:a" "2:" "3:c"] (cli/prepend-line-numbers 1 :all ["a" "" "c"])))))
 
     (testing "different lengths"
       (are [expected start lines]
-        (= expected (cli/prepend-line-numbers start nil lines))
+        (= expected (cli/prepend-line-numbers start :all lines))
         [" 9:a" "10:b" "11:c"] 9 ["a" "b" "c"]
         [" 8:a" " 9:b" "10:c"] 8 ["a" "b" "c"]
         [" 997:a" " 998:b" " 999:c" "1000:d"] 997 ["a" "b" "c" "d"])
-      (let [prefixed (cli/prepend-line-numbers 1 nil (map str (range 1 1001)))]
+      (let [prefixed (cli/prepend-line-numbers 1 :all (map str (range 1 1001)))]
         (is (= "   1:1" (first prefixed)))
         (is (= "  42:42" (nth prefixed 41)))
         (is (= " 100:100" (nth prefixed 99)))
@@ -111,7 +125,7 @@
 
     (testing "first-line-number"
       (are [expected start lines]
-        (= expected (cli/prepend-line-numbers start {:first-line-number? true} lines))
+        (= expected (cli/prepend-line-numbers start :first lines))
         ["9:a" "  b" "  c"] 9 ["a" "b" "c"]
         ["1000:a" "     b" "     c"] 1000 ["a" "b" "c"]))))
 
@@ -168,12 +182,12 @@
     (testing "line numbers"
       (is (= "2:  (println \"a\")\n3:  (println \"b\")\n4:  (println \"c\")\n"
              (with-out-str
-               (cli/match-source! source pattern {:line-numbers? true})))))
+               (cli/match-source! source pattern {:line-numbers :all})))))
     (testing "line numbers + unindent"
       (is (= "2:(println \"a\")\n3:(println \"b\")\n4:(println \"c\")\n"
              (with-out-str
-               (cli/match-source! source pattern {:line-numbers? true
-                                                  :unindent?     true})))))
+               (cli/match-source! source pattern {:line-numbers :all
+                                                  :unindent?    true})))))
     (testing "trailing newlines"
       (is (= "  (println \"a\")\n\n  (println \"b\")\n\n  (println \"c\")\n\n"
              (with-out-str
@@ -181,33 +195,29 @@
     (testing "line numbers + trailing newlines"
       (is (= "2:  (println \"a\")\n\n3:  (println \"b\")\n\n4:  (println \"c\")\n\n"
              (with-out-str
-               (cli/match-source! source pattern {:line-numbers?     true
+               (cli/match-source! source pattern {:line-numbers      :all
                                                   :trailing-newline? true})))))
 
     (testing "first line number"
       (testing "with single-line matches"
-        (let [expected "2:  (println \"a\")\n3:  (println \"b\")\n4:  (println \"c\")\n"]
-          (testing "without :line-numbers?"
-            (is (= expected
-                   (with-out-str
-                     (cli/match-source! source pattern {:first-line-number? true})))))
-
-          (testing "with :line-numbers?"
-            (is (= expected
-                   (with-out-str
-                     (cli/match-source! source pattern {:first-line-number? true
-                                                        :line-numbers?      true})))))))
+        (is (= "2:  (println \"a\")\n3:  (println \"b\")\n4:  (println \"c\")\n"
+               (with-out-str
+                 (cli/match-source! source pattern {:line-numbers :first})))))
 
       (testing "with multi-line matches"
         (is (= "1:(do\n    (println \"a\")\n    (println \"b\")\n    (println \"c\"))\n"
                (with-out-str
-                 (cli/match-source! source (g/pattern "(do $&)") {:first-line-number? true}))))
+                 (cli/match-source! source (g/pattern "(do $&)") {:line-numbers :first}))))
         (testing "with unindent"
           (is (= "1:(map\n  f\n  xs)\n"
                  (with-out-str
                    (cli/match-source!
                      (assoc source :code "  (map\n  f\n  xs)\n")
                      (g/pattern "(map $&)")
-                     {:first-line-number? true
-                      :unindent?          true})))))))
+                     {:line-numbers :first
+                      :unindent?    true})))))))
     ))
+
+
+;; TODO test that we preserve commas, #_ and comments when printing matches
+;; Also: preserve newlines: \r\n

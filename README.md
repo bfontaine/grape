@@ -18,11 +18,11 @@ Output:
 ```
 src/grape/impl/match.clj:
 29:(map match?
-30:     trees
-31:     patterns)
+        trees
+        patterns)
 
 src/grape/cli.clj:
-117:(map #(when (= %1 %2) %1) prefix line-prefix)
+137:(map #(when (= %1 %2) %1) prefix line-prefix)
 
 ```
 
@@ -31,7 +31,10 @@ Options:
 * `-F`, `--no-filenames`: by default, `grape` shows the matching filenames when run on multiple files. This option
   disables that.
 * `-u`, `--unindent`: un-indent matches.
-* `-N`, `--no-line-numbers`: by default, `grape` prefixes matching lines with their number. This option disables that.
+* `--line-numbers first|all|none`: control line numbers. The default is `first`, i.e. only the first line of each match
+  is prefixed by its line number. `all` shows all line numbers; `none` remove them.
+* `-n`, `--all-line-numbers`: alias for `--line-numbers all`
+* `-N`, `--no-line-numbers`: alias for `--line-numbers none`
 
 Run `grape --help` to show all options.
 

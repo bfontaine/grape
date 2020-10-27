@@ -8,13 +8,21 @@
   (:gen-class))
 
 (def cli-options
+  ;; Implicit convention: lower-case options enable features; upper-case options disable them.
   [["-h" "--help" "Show this help and exit."]
    ["-v" "--version" "Show the version and exit."]
    ["-c" "--count" "Print the total matches count and exit."]
    ["-F" "--no-filenames" "Don't show the filenames when matching against multiple files."]
    ["-u" "--unindent" "Remove indentation when printing matches."]
-   ["-N" "--no-line-numbers" "Don't show line numbers before matches."]
-   [nil "--first-line-number" "Show only the first line number before multi-lines matches. This has no effect if --no-line-numbers is used."]
+   [nil "--line-numbers MODE"
+    (str
+      "Control which line numbers are shown:"
+      " only the first line of each match ('first'; default); all lines ('all'); or none ('none')."
+      " This takes precedence over any alias.")
+    :validate [#(contains? #{"first" "all" "none"} %) "Must be 'first', 'all', or 'none."]]
+   ["-n" "--all-line-numbers" "Show all line numbers. Alias for --line-numbers all."]
+   ["-N" "--no-line-numbers"
+    "Don't show any line number. Alias for --line-numbers none. This takes precedence over --all-line-numbers."]
    [nil "--no-trailing-newlines" "Don't append a newline after each match."]])
 
 (defn- usage
@@ -92,9 +100,19 @@
          :count?                (:count options)
          :hide-filenames?       (:no-filenames options)
          :unindent?             (:unindent options)
-         :hide-line-numbers?    (:no-line-numbers options)
-         :no-trailing-newlines? (:no-trailing-newlines options)
-         :first-line-number?    (:first-line-number options)}))))
+         :line-numbers          (cond
+                                  (contains? options :line-numbers)
+                                  (keyword (:line-numbers options))
+
+                                  (:no-line-numbers options)
+                                  :none
+
+                                  (:all-line-numbers options)
+                                  :all
+
+                                  :else
+                                  :first)
+         :no-trailing-newlines? (:no-trailing-newlines options)}))))
 
 (defn unindent-lines
   "Unindent lines. Return a sequence of lines to be later joined with '\\n'."
@@ -130,19 +148,22 @@
          lines)))
 
 (defn prepend-line-numbers
-  "Prepend line numbers to each line in a sequence. Lines are left-padded with spaces."
-  [start-line {:keys [first-line-number?] :as _options} lines]
-  (let [max-line    (if first-line-number?
+  "Prepend line numbers to each line in a sequence. Lines are left-padded with spaces.
+   The mode can be :first (prepend the first line only) or :all."
+  [start-line mode lines]
+  {:pre [(#{:first :all} mode)]}
+  (let [first-line-only? (= mode :first)
+        max-line    (if first-line-only?
                       start-line
                       (+ start-line (count lines)))
         width       (count (str max-line))
         fmt         (str "%" width "d:%s")
         ;; if :first-line-number?, prepend all lines but the first one with spaces to keep the same offset.
         ;; inc for the ':'.
-        whitespaces (when first-line-number?
+        whitespaces (when first-line-only?
                       (str/join "" (repeat (inc width) " ")))]
     (map-indexed (fn [i line]
-                   (if (and first-line-number? (> i 0))
+                   (if (and first-line-only? (> i 0))
                      (str whitespaces line)
                      (format fmt (+ i start-line) line)))
                  lines)))
@@ -158,7 +179,7 @@
   (str/join "\n" s))
 
 (defn- match-string
-  [m {:keys [unindent? line-numbers? first-line-number?] :as options}]
+  [m {:keys [unindent? line-numbers] :as _options}]
   (let [whitespace-count (-> m :meta :start :column)
         whitespace       (apply str (repeat whitespace-count " "))
         s                (str whitespace (:match m))]
@@ -167,9 +188,8 @@
                unindent?
                unindent-lines
 
-               (or line-numbers?
-                   first-line-number?)
-               (prepend-line-numbers (-> m :meta :start :row) options)))))
+               line-numbers
+               (prepend-line-numbers (-> m :meta :start :row) line-numbers)))))
 
 (defn- read-path
   [path]
@@ -190,6 +210,9 @@
 
 (defn match-source!
   "Match a pattern against a source and print all matches."
+  ;; Note: this function and the ones it uses are independent of the command-line interface: while the CLI may have
+  ;;   default options (which can be disabled), this function have no default feature-- everything is enabled through
+  ;;   flags.
   [{:keys [code path]} pattern {:keys [show-filename? trailing-newline?] :as options}]
   (let [matches (g/find-codes code pattern)]
     (when (and show-filename? (seq matches))
@@ -204,19 +227,17 @@
   (let [{:keys [exit-code exit-text
                 pattern paths
                 count? unindent? hide-filenames?
-                first-line-number? hide-line-numbers?
+                line-numbers
                 no-trailing-newlines?]} (parse-args args)
-        _             (when exit-code
-                        (exit! exit-code exit-text))
-        pattern       (g/pattern pattern)
-        sources       (map read-path paths)
-        line-numbers? (not hide-line-numbers?)
-        options       {:show-filename?     (and (not hide-filenames?)
-                                                (< 1 (count sources)))
-                       :unindent?          unindent?
-                       :line-numbers?      line-numbers?
-                       :first-line-number? (and line-numbers? first-line-number?)
-                       :trailing-newline?  (not no-trailing-newlines?)}]
+        _       (when exit-code
+                  (exit! exit-code exit-text))
+        pattern (g/pattern pattern)
+        sources (map read-path paths)
+        options {:show-filename?    (and (not hide-filenames?)
+                                         (< 1 (count sources)))
+                 :unindent?         unindent?
+                 :line-numbers      line-numbers
+                 :trailing-newline? (not no-trailing-newlines?)}]
     (if count?
       (println (count-matches sources pattern))
       (doseq [source sources]

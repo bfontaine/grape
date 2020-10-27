@@ -2,12 +2,14 @@
 
 ## Unreleased
 ### CLI
-* Matches are now prefixed by line numbers, and followed by a newline
+* The first line of each match is now prefixed by its line number
+* Matches are now followed by a newline
 * Read from `stdin` if no path is given
 * Accept `-` as a special path to read from `stdin`. If `-` is used multiple times, only the first one is effective.
-* Add `-N`/`--no-line-numbers` to hide line numbers
+* Add `--line-numbers first|all|none` to control how line numbers are shown
+* Add `-N`/`--no-line-numbers` as an alias to `--line-numbers none`
+* Add `-n`/`--all-line-numbers` as an alias to `--line-numbers all`
 * Add `--no-trailing-newlines` to remove the (new) trailing newline after each match
-* Add `--first-line-number` to show only each match’s first line number
 * Fix `--version` that was failing with an `IllegalArgumentException` (#1)
 
 ## 0.4.0 (2020/10/24)
