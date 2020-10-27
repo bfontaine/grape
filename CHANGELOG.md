@@ -1,11 +1,13 @@
 # Grape Changelog
 
-## Unreleased
+## 0.5.0 (2020/10/27)
+
 ### Library
 * `grape.core/unparse-code` now accept an optional map of options. Only `:inline?` is supported for now; it forces code
   to fit on one line by removing newlines and comments and compacting whitespaces.
 
 ### CLI
+* Fix `--version` that was failing with an `IllegalArgumentException` (#1)
 * The first line of each match is now prefixed by its line number
 * Matches are now followed by a newline
 * Read from `stdin` if no path is given
@@ -15,7 +17,6 @@
 * Add `-n`/`--all-line-numbers` as an alias to `--line-numbers all`
 * Add `--no-trailing-newlines` to remove the (new) trailing newline after each match
 * Add `--inline` to always show matches on a single line
-* Fix `--version` that was failing with an `IllegalArgumentException` (#1)
 
 ## 0.4.0 (2020/10/24)
 
