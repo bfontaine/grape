@@ -1,5 +1,9 @@
 # Grape Changelog
 
+## 0.5.1
+### CLI
+* Fix `--line-numbers none`
+
 ## 0.5.0 (2020/10/27)
 
 ### Library

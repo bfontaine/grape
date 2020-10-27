@@ -105,10 +105,11 @@
          :no-trailing-newlines? (:no-trailing-newlines options)
          :line-numbers          (cond
                                   (contains? options :line-numbers)
-                                  (keyword (:line-numbers options))
+                                  (when (not= "none" (:line-numbers options))
+                                    (keyword (:line-numbers options)))
 
                                   (:no-line-numbers options)
-                                  :none
+                                  nil
 
                                   (:all-line-numbers options)
                                   :all

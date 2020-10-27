@@ -45,12 +45,12 @@
       :first ["--line-numbers" "first"]
       :all ["--line-numbers" "all"]
       ;; Aliases
-      :none ["--line-numbers" "none"]
+      nil ["--line-numbers" "none"]
       :all ["--all-line-numbers"]
       :all ["-n"]
-      :none ["-N"]
+      nil ["-N"]
       ;; Mix of aliases
-      :none ["--all-line-numbers" "--no-line-numbers"]
+      nil ["--all-line-numbers" "--no-line-numbers"]
       ;; Mix of --line-numbers with aliases
       :first ["--line-numbers" "first" "--all-line-numbers"]
       :first ["--line-numbers" "first" "--no-line-numbers"]
