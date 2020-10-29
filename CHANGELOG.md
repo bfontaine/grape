@@ -1,7 +1,8 @@
 # Grape Changelog
 
-## Unreleased
+## 0.6.0 (2020/10/29)
 * Add support for typed multi-expressions wildcards such as `$keyword&` and `$number$` (#2)
+* Rewrite a significant part of the internal code (`grape.impl.*`) to facilitate future evolutions
 
 ## 0.5.1 (2020/10/27)
 ### CLI
