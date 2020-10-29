@@ -12,3 +12,4 @@ pom.xml.asc
 .hg/
 /grape
 /grape-*
+.clj-kondo/.cache

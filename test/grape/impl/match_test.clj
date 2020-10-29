@@ -1,7 +1,6 @@
 (ns grape.impl.match-test
   (:require [clojure.test :refer :all]
-            [grape.impl.match :as match]
-            [grape.impl.match :as m]))
+            [grape.impl.match :as match]))
 
 (deftest parse-pattern-test
   (testing "leading whitespace and comments"
@@ -22,7 +21,7 @@
 (deftest match-multi-wildcards?-test
   (testing "matches"
     (are [trees nodes]
-      (#'m/match-multi-wildcards? trees nodes)
+      (#'match/match-multi-wildcards? trees nodes)
       [] [(list :symbol "$keyword&")]
       [] [(list :symbol "$&")]
       [(list :keyword "foo") (list :map)] [(list :symbol "$&")]
@@ -31,7 +30,7 @@
 
   (testing "mismatches"
     (are [trees nodes]
-      (not (#'m/match-multi-wildcards? trees nodes))
+      (not (#'match/match-multi-wildcards? trees nodes))
       [(list :keyword "foo") (list :map)] [(list :symbol "$map&") (list :symbol "$&")]
       [(list :keyword "a") (list :keyword "b") (list :keyword "c")] [(list :symbol "$number&")])))
 
@@ -42,7 +41,7 @@
         sym (list :symbol "bar")]
     (testing "matches"
       (are [trees patterns]
-        (#'m/match-seq? trees patterns)
+        (#'match/match-seq? trees patterns)
         [] []
         [] [$&]
         [] [$& $&]
@@ -57,7 +56,7 @@
 
     (testing "mismatches"
       (are [trees patterns]
-        (not (#'m/match-seq? trees patterns))
+        (not (#'match/match-seq? trees patterns))
         [kw kw kw kw sym] [(list :symbol "$keyword&")]
         ))))
 
