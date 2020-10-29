@@ -1,17 +1,16 @@
 (ns grape.impl.match
+  "Internal match utilities."
   (:require [clojure.string :as str]
-            [grape.impl.models :refer [tree-leave? pattern? node-type node-children node-child
-                                       wildcard-expression? wildcard-expressions? typed-wildcard-expression?
-                                       ->typed-wildcard]]
+            [grape.impl.models :as m]
             [grape.impl.parsing :as p]))
 
 (defn pattern
   [code]
-  {:post [(pattern? %)]}
+  {:post [(m/pattern? %)]}
   (-> code
       str/trim
       p/parse-code
-      node-children
+      m/node-children
       first))
 
 ;; -------------------
@@ -30,72 +29,84 @@
                  trees
                  patterns))))
 
+(defn- match-multi-wildcards?
+  [trees wildcard-nodes]
+  (let [node-types (map :node-type (distinct (map m/node-wildcard wildcard-nodes)))]
+    (or
+      ;; Empty trees always match any number of multiple-expressions wildcards
+      (empty? trees)
+
+      ;; $& matches everything
+      (= [:_all] node-types)
+
+      ;; $<type>& matches a sequence of nodes of type <type>
+      (and
+        (= 1 (count node-types))
+        (let [node-type (first node-types)]
+          (every? #(= node-type (m/node-type %)) trees)))
+
+      ;; We could add some heuristics at this point.
+      ;; - [$t1& $t2& $t3&]: drop trees while type==t1, then while type==t2, etc.
+      ;; - [$t1& $& $t2&]: idem, but start from the end once we reach $&
+      )))
+
 (defn- match-seq?
   "Test if a sequence of subtrees match a sequence of patterns."
   [trees patterns]
   (let [;; Assume a pattern sequence have the following format:
         ;;   (expression* expressions-wildcard expression*)
-        ;; For convenience, we allow multiple expressions-wildcards to occur
+        ;; For convenience, we allow multiple equal expressions-wildcards to occur
         ;; as if they were all one wildcard.
         ;;
         ;; We first split the pattern to extract that (expression* part from
         ;; the rest.
-        [start end-with-wildcard] (split-with (complement wildcard-expressions?)
+        [start end-with-wildcard] (split-with (complement m/multi-wildcard?)
                                               patterns)
         ;; Then split the rest into wildcards and the end.
-        [wildcards end] (split-with wildcard-expressions? end-with-wildcard)]
+        [wildcard-nodes end] (split-with m/multi-wildcard? end-with-wildcard)]
 
     ;; If we have no wildcard, fallback on the default matching.
-    (if (empty? wildcards)
+    (if (empty? wildcard-nodes)
       (exact-match-seq? trees patterns)
       ;; Otherwise, extract the start and end of the subtrees.
       (let [
-            ;; Take the right number of subtrees at the beginning so they match
-            ;; 'start' patterns.
-            start-trees (take (count start) trees)
+            ;; Take the right number of subtrees at the beginning so they match 'start' patterns.
+            [start-trees rest-trees] (split-at (count start) trees)
             ;; Do the same with the end subtrees.
-            end-trees   (drop (- (count trees) (count end)) trees)]
+            [wildcarded-trees end-trees] (split-at (- (count rest-trees) (count end)) rest-trees)]
         (and
           (exact-match-seq? start-trees start)
-          (exact-match-seq? end-trees end))))))
+          (exact-match-seq? end-trees end)
+          (match-multi-wildcards? wildcarded-trees wildcard-nodes))))))
 
-(defn- match-typed-wildcard-expression?
-  "Test if 'node' matches typed-wildcard 'pattern'."
+(defn- match-wildcard?
   [node pattern]
-  ;; pattern == (:symbol wildcard-name), with wildcard-name = $something
-  ;; node == (:something_else ...)
-  ;; we're checking if $something-else == $something
-  (let [wildcard-name                (node-child pattern)
-        node-type                    (str/replace (name (node-type node)) #"_" "-")
-        node-type-as-a-wildcard-name (->typed-wildcard node-type)]
-    (= wildcard-name
-       node-type-as-a-wildcard-name)))
+  (let [{:keys [node-type]} (m/node-wildcard pattern)]
+    (or (= :_all node-type)
+        (= node-type (m/node-type node)))))
 
 (defn match?
   "Test if a subtree matches a pattern. Always return false on the root tree."
   [tree pattern]
   (cond
     ;; root tree
-    (= :code (node-type tree))
+    (= :code (m/node-type tree))
     false
 
     ;; one of them is a leave:
     ;; - if both are leaves and equal, return true
     ;; - otherwise false (a leave and a non-leave are never equal)
-    (or (tree-leave? tree) (tree-leave? pattern))
+    (or (m/tree-leave? tree) (m/tree-leave? pattern))
     (= tree pattern)
 
-    (wildcard-expression? pattern)
-    true
-
-    (typed-wildcard-expression? pattern)
-    (match-typed-wildcard-expression? tree pattern)
+    (m/wildcard? pattern)
+    (match-wildcard? tree pattern)
 
     ;; [:symbol "foo"] ≠ [:keyword "foo"]
-    (not= (node-type tree) (node-type pattern))
+    (not= (m/node-type tree) (m/node-type pattern))
     false
 
     :else
-    (let [tree-children    (node-children tree)
-          pattern-children (node-children pattern)]
+    (let [tree-children    (m/node-children tree)
+          pattern-children (m/node-children pattern)]
       (match-seq? tree-children pattern-children))))

@@ -16,6 +16,12 @@
 
   (defn g [x] x)")
 
+(deftest subtrees-test
+  (is (= [[:symbol "f"]]
+         (rest (#'g/subtrees (g/parse-code "f")))))
+  (is (= [:list [:symbol "f"] [:whitespace " "] [:number "1"]]
+         (second (#'g/subtrees (g/parse-code "(f 1)"))))))
+
 ;; -------------------
 ;; Tree matching
 ;; -------------------
@@ -149,7 +155,8 @@
                      "($& 1 2 3)"
                      "(f $& 2 3)"
                      "(f $& 3)"
-                     "(f 1 $& 2 3)")
+                     "(f 1 $& 2 3)"
+                     )
 
       (are [pattern] (nil? (g/find-code code (g/pattern pattern)))
                      "(f $& 1 2 3 $&)"
@@ -216,6 +223,22 @@
                         "$float" "3.14"
                         "$char" "\\a"))
 
+  (testing "typed-expressions wildcards"
+    (are [pattern code] (= {:match code}
+                           (dissoc (g/find-code code (g/pattern pattern)) :meta))
+                        "[$symbol&]" "[]"
+                        "[$symbol&]" "[foo]"
+                        "[$symbol&]" "[foo bar]"
+                        "[$string&]" "[\"a\" \"b\"]"
+                        "[$vector&]" "[]"
+                        "[$vector&]" "[[]]"
+                        "[$vector&]" "[[] [\"a\" :foo]]"
+                        "[$map& $map]" "[{}]"
+                        "[$map& $map]" "[{} {}]"
+                        "[$number $number& $number]" "[1 2]"
+                        "[$number $number& $number]" "[1 2 3]"
+                        ))
+
   (testing "mixed wildcards"
     (let [pattern (g/pattern "#{$ $&}")]
       (is (nil? (g/find-code "#{}" pattern)))
@@ -225,7 +248,21 @@
     (let [pattern (g/pattern "#{0 $ 2 $&}")]
       (is (nil? (g/find-code "#{0 2 3}" pattern)))
       (is (nil? (g/find-code "#{0 1 3}" pattern)))
-      (is (some? (g/find-code "#{0 1 2}" pattern))))))
+      (is (some? (g/find-code "#{0 1 2}" pattern))))
+
+    (let [pattern (g/pattern "[$number $keyword& $map $]")]
+      (are [code]
+        (some? (g/find-code code pattern))
+        "[1 {} 2]"
+        "[1 {} nil]"
+        "[1 :foo {} 2]"
+        "[1 :foo :bar {} :qux]")
+      (are [code]
+        (nil? (g/find-code code pattern))
+        "[:foo]"
+        "[:foo {}]"
+        "[1 2 {} 3]"
+        "[:a 1 2]"))))
 
 (deftest count-codes-test
   (is (= 5 (g/count-codes "[1 2 3 4]" (g/pattern "$")))))

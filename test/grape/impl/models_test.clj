@@ -33,37 +33,33 @@
   (let [s (list :symbol "foo")]
     (is (= s (m/node-child (list :vector s))))))
 
-(deftest wildcard-expression?-test
-  (is (m/wildcard-expression? (list :symbol m/*wildcard-expression*)))
-  (is (not (m/wildcard-expression? (list :symbol m/*wildcard-expressions*))))
-  (is (not (m/wildcard-expression? (list :keyword m/*wildcard-expression*))))
-  (is (not (m/wildcard-expression? (list :symbol "hello")))))
+(deftest wildcard?-test
+  (are [expected node]
+    (= expected (boolean (m/wildcard? node)))
+    false (list :keyword "$foo")
+    false (list :symbol "foo")
+    true (list :symbol "$foo")
+    true (list :symbol "$list&")))
 
-(deftest wildcard-expressions?-test
-  (is (m/wildcard-expressions? (list :symbol m/*wildcard-expressions*)))
-  (is (not (m/wildcard-expressions? (list :symbol m/*wildcard-expression*))))
-  (is (not (m/wildcard-expressions? (list :keyword m/*wildcard-expressions*))))
-  (is (not (m/wildcard-expressions? (list :symbol "hello")))))
+(deftest multi-wildcard?-test
+  (are [expected node]
+    (= expected (boolean (m/multi-wildcard? node)))
+    false (list :keyword "$foo")
+    false (list :symbol "$foo")
+    true (list :symbol "$foo&")))
 
-(deftest typed-wildcard-expression?-test
-  (are [x] (m/typed-wildcard-expression?
-             (list :symbol (str m/*wildcard-expression* x)))
-           "keyword"
-           "string"
-           "vector"
-           "fn")
-  (are [x] (not (m/typed-wildcard-expression? x))
-           (list :symbol m/*wildcard-expression*)
-           (list :symbol m/*wildcard-expressions*)
-           (list :keyword (str m/*wildcard-expression* "string")))
+(deftest node-wildcard-test
+  (are [expected s]
+    (= expected (m/node-wildcard (list :symbol s)))
+    nil "$nope"
+    nil "$nope&"
+    {:node-type :_all :multiple? false} "$"
+    {:node-type :keyword :multiple? false} "$keyword"
+    {:node-type :macro_keyword :multiple? false} "$macro-keyword"
 
-  (binding [m/*wildcard-expression* "*"]
-    (is (m/typed-wildcard-expression? (list :symbol "*list")))))
+    {:node-type :_all :multiple? true} "$&"
+    {:node-type :keyword :multiple? true} "$keyword&"))
 
-(deftest ->typed-wildcard-test
-  (binding [m/*wildcard-expression* "*"]
-    (is (= "*list"
-           (m/->typed-wildcard "list")))))
 
 (deftest compact-whitespaces-test
   (testing "leading/trailing whitespaces"

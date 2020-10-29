@@ -26,10 +26,16 @@
   [tree]
   (with-meta (list :code tree) (meta tree)))
 
+(defn- subtrees
+  [tree]
+  (->> tree
+       (tree-seq tree-node? node-children)
+       (filter tree-node?)))
+
 (defn- find-raw-subtrees
   [tree pattern]
   (->> tree
-       (tree-seq tree-node? node-children)
+       subtrees
        (filter #(match? % pattern))))
 
 (defn find-subtrees

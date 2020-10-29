@@ -1,5 +1,8 @@
 # Grape Changelog
 
+## Unreleased
+* Add support for typed multi-expressions wildcards such as `$keyword&` and `$number$` (#2)
+
 ## 0.5.1 (2020/10/27)
 ### CLI
 * Fix `--line-numbers none`

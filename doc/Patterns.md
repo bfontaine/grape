@@ -7,7 +7,7 @@ They are matched recursively: `[$]` matches `[[1]]` twice; once on `[[1]]` and o
 ## Literals
 
 literals are matched, well, literally. Like in a regular expression, they match their own representation:
-the pattern `42` matches the code `42`.
+the pattern `42` matches the code `42` and the pattern `:foo` matches the code `:foo`.
 
 ## Wildcards
 ### `$`
@@ -60,7 +60,15 @@ This list is based on [Parcera’s grammar][pg], except that underscores are rep
 
 [pg]: https://github.com/carocad/parcera/blob/83cd988e69116b67c620c099f78b693ac5e37233/src/Clojure.g4
 
-Note: when matching collections you can have a better control over their content by using literals:
+Note: when matching collections you can have a better control over their content by using single wildcards:
 `$vector` matches any vector, while `[]` matches empty vectors and `[$ $ $]` matches vectors of exactly
 3 elements. These can of course be combined: `[$ $number $ $regex]` matches all 4-elements vectors where
-the second one is a number and the fourth and last one a regular expression.
+the second one is a number and the fourth one a regular expression.
+
+### `$type&`
+
+`$type&` is the child of `$&` and `$type&`. `[$keyword $number&]` matches a vector that contains one keyword
+followed by zero or more numbers.
+
+Note consecutive typed multiple-expression wildcards are not supported for now: `[$keyword& $symbols&]` doesn’t work
+(yet).
