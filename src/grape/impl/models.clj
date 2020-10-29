@@ -104,14 +104,40 @@ in a pattern, including zero. This must be a valid Clojure symbol."}
   (= (list :symbol *wildcard-expressions*)
      node))
 
+(def ^:private
+  types
+  ;; https://github.com/carocad/parcera/blob/d6b28b1058ef2af447a9452f96c7b6053e59f613/src/parcera/core.cljc#L26
+  #{"backtick"
+    "character"
+    "conditional"
+    "conditional-splicing"
+    "deref"
+    "fn"
+    "keyword"
+    "list"
+    "macro-keyword"
+    "map"
+    "metadata"
+    "number"
+    "quote"
+    "regex"
+    "set"
+    "string"
+    "symbol"
+    "symbolic"
+    "unquote"
+    "unquote-splicing"
+    "vector"
+    "var-quote"})
+
 (defn typed-wildcard-expression?
   "Test if a node is an typed expression wildcard symbol."
   [node]
   (and (pattern? node)
        (= :symbol (node-type node))
-       (not (wildcard-expression? node))
-       (not (wildcard-expressions? node))
-       (str/starts-with? (node-child node) *wildcard-expression*)))
+       (let [s (node-child node)]
+         (str/starts-with? s *wildcard-expression*)
+         (contains? types (subs s 1)))))
 
 (defn ->typed-wildcard
   [typ]

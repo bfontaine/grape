@@ -50,7 +50,8 @@
              (list :symbol (str m/*wildcard-expression* x)))
            "keyword"
            "string"
-           "vector")
+           "vector"
+           "fn")
   (are [x] (not (m/typed-wildcard-expression? x))
            (list :symbol m/*wildcard-expression*)
            (list :symbol m/*wildcard-expressions*)

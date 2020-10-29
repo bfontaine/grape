@@ -175,7 +175,7 @@
   (testing "all typed-expression wildcards"
     (are [pattern code] (= {:match code}
                            (dissoc (g/find-code code (g/pattern pattern)) :meta))
-                        ;; https://github.com/carocad/parcera/blob/d6b28b1058ef2af447a9452f96c7b6053e59f613/src/parcera/core.cljc#L26
+                        ;; see grape.impl.models/types
                         "$symbol" "foo"
                         "$symbol" "foo/bar"
                         "$symbol" "clojure.string/foo"
@@ -207,8 +207,14 @@
                         "$vector" "[]"
 
                         "$map" "{}"
-                        "$set" "#{}"
-                        ))
+                        "$set" "#{}"))
+
+  (testing "bad typed-expression wildcards"
+    (are [pattern code] (nil? (dissoc (g/find-code code (g/pattern pattern)) :meta))
+                        "$simple-keyword" ":foo"
+                        "$integer" "1"
+                        "$float" "3.14"
+                        "$char" "\\a"))
 
   (testing "mixed wildcards"
     (let [pattern (g/pattern "#{$ $&}")]
