@@ -49,6 +49,15 @@ If you have [Homebrew](https://brew.sh), you can install it like so:
 brew install bfontaine/utils/grape
 ```
 
+Thanks to @ngrunwald, there’s also an Arch Linux [`grape-bin`][arch] package. For example, if you
+use `yay`:
+
+```bash
+yay -S grape-bin
+```
+
+[arch]: https://aur.archlinux.org/packages/grape-bin/
+
 ## Library
 [![Clojars Project](https://img.shields.io/clojars/v/bfontaine/grape.svg)](https://clojars.org/bfontaine/grape)
 
@@ -106,3 +115,6 @@ Public License, v. 2.0 are satisfied: GNU General Public License as published
 by the Free Software Foundation, either version 2 of the License, or (at your
 option) any later version, with the GNU Classpath Exception which is available
 at https://www.gnu.org/software/classpath/license.html.
+
+## See also
+* [Grape](https://github.com/borkdude/grasp), to grep Clojure code using clojure.spec regexes
