@@ -117,4 +117,4 @@ option) any later version, with the GNU Classpath Exception which is available
 at https://www.gnu.org/software/classpath/license.html.
 
 ## See also
-* [Grape](https://github.com/borkdude/grasp), to grep Clojure code using clojure.spec regexes
+* [Grasp](https://github.com/borkdude/grasp), to grep Clojure code using clojure.spec regexes
