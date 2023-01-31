@@ -4,6 +4,10 @@
 **Grape** is a syntax-aware `grep`-like utility for Clojure code. It allows you to search for code
 patterns using Clojure data structures.
 
+Note: this project is not maintained. It works as is, but I don’t use Clojure these days and I don’t have the
+time/motivation to add more features. If you wish to improve the project, please contact me so I can give you commit
+access. Otherwise, see [Grasp](https://github.com/borkdude/grasp) for a similar and more-maintained tool.
+
 ## Command-line
 ```
 $ grape [options] <pattern> [<file> ...]
@@ -103,7 +107,7 @@ Wildcards can be combined: `#{$ $&}` matches a set with at least one element.
 
 ## License
 
-Copyright © 2019-2020 Baptiste Fontaine
+Copyright © 2019-2023 Baptiste Fontaine
 
 This program and the accompanying materials are made available under the terms
 of the Eclipse Public License 2.0 which is available at
